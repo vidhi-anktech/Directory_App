@@ -164,7 +164,9 @@ class _HomePageState extends State<HomePage> {
                           bottomRight: Radius.circular(25),
                         ),
                       )),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/second');
+                  },
                   child: const Row(
                     children: [
                       Text(

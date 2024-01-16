@@ -106,6 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                   Navigator.pushNamed(context, '/third');
                 }
                 clearScreen();
+
               },
               style: ElevatedButton.styleFrom(
                 shape: const RoundedRectangleBorder(
@@ -139,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
             )),
         TextButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/second');
+              Navigator.pushNamed(context, '/third');
             },
             child: const Text(
               "REGISTER NOW !",

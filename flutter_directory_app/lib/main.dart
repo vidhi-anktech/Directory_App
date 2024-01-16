@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/home_page.dart';
-// import 'package:flutter_directory_app/image_picker.dart';
+import 'package:flutter_directory_app/login_page.dart';
+import 'package:flutter_directory_app/register_details_page.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -12,6 +13,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Directory App',
+      initialRoute: '/',
+      routes: {
+        // When navigating to the "/" route, build the FirstScreen widget.
+        // '/': (context) => const HomePage(),
+        // When navigating to the "/second" route, build the SecondScreen widget.
+        '/second': (context) => const LoginPage(),
+        '/third' : (context) => const RegistrationPage(),
+      },
       theme: ThemeData(
         inputDecorationTheme: const InputDecorationTheme(
           hintStyle: TextStyle(
@@ -20,7 +29,7 @@ class MyApp extends StatelessWidget {
           ),
           prefixIconColor: Color.fromRGBO(119, 119, 119, 1),
         ),
-        textSelectionTheme: TextSelectionThemeData(
+        textSelectionTheme: const TextSelectionThemeData(
           cursorColor: Colors.black,
         ),
         textTheme: const TextTheme(
