@@ -1,58 +1,37 @@
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/register_details_page.dart';
-import 'package:flutter_directory_app/verify_otp.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+
+class VerifyOtpScreen extends StatefulWidget {
+  final String verificationId;
+  const VerifyOtpScreen({ Key? key, required this.verificationId}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _phoneController = TextEditingController();
-  final _phoneFocusNode = FocusNode();
-  bool _validateNumber = false;
+class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _phoneFocusNode.dispose();
-    super.dispose();
-  }
+  TextEditingController otpController = TextEditingController();
 
-  void clearScreen() {
-    _phoneController.clear();
-  }
+ void verifyOTP() async{
+  String otp = otpController.text.trim();
 
-  String? _validatePhoneNumber(value) {
-    // Phone number validation regex (customize as needed)
-    final RegExp phoneRegex = RegExp(r'^\d{10}$');
+  PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId, smsCode: otp);
 
-    if (!phoneRegex.hasMatch(value)) {
-      return 'Enter a valid 10-digit phone number';
+  try{
+    UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+    if(userCredential.user != null){
+    Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
     }
-
-    return null;
-  }
-
-void _sendOTP() async{
- String phone = "+91" + _phoneController.text.trim();
-
- await FirebaseAuth.instance.verifyPhoneNumber(
-  phoneNumber: phone,
-  verificationCompleted: (credential){}, 
-  verificationFailed: (ex){
+  }on FirebaseAuthException catch(ex){
     print(ex.code.toString());
-  }, 
-  codeSent: (verificationId, resendToken){
-    Navigator.push(context, MaterialPageRoute(builder: (context) => VerifyOtpScreen(verificationId: verificationId,)));
-  }, 
-  codeAutoRetrievalTimeout: (verificationId){},
-  timeout: Duration(seconds: 30),
-  );
-}
+  }
+ }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +47,7 @@ void _sendOTP() async{
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Verify Your Mobile Number",
+                    "Please Enter OTP",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 25,
@@ -85,15 +64,11 @@ void _sendOTP() async{
                 ],
               ),
               const SizedBox(height: 50),
-              TextFormField(
-                controller: _phoneController,
-                focusNode: _phoneFocusNode,
-                keyboardType: TextInputType.phone,
+              TextField(
+                controller: otpController,
+                maxLength: 6,
                 decoration: InputDecoration(
-                  hintText: "Enter your Phone number",
-                  errorText: _validateNumber
-                      ? "Enter a valid 10-digit phone number"
-                      : null,
+                  hintText: "Enter your 6 digit OTP",
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.circular(20),
@@ -103,24 +78,11 @@ void _sendOTP() async{
                   filled: true,
                   prefixIcon: const Icon(Icons.person),
                 ),
-                validator: _validatePhoneNumber,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  setState(() {
-                    _validateNumber = !_phoneFocusNode.hasFocus &&
-                        _validatePhoneNumber(_phoneController.text) != null;
-                  });
-
-                  if (!_validateNumber) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => VerifyOtpScreen(verificationId: '',)),
-                    );
-                  }
-                  _sendOTP();
-                  clearScreen();
+                 verifyOTP();
                 },
                 style: ElevatedButton.styleFrom(
                   shape: const RoundedRectangleBorder(
@@ -145,8 +107,7 @@ void _sendOTP() async{
       ),
     );
   }
-
-  Widget _registerNow() {
+   Widget _registerNow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
