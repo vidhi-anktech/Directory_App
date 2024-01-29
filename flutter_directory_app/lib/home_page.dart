@@ -41,14 +41,14 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         elevation: 0.00,
-        backgroundColor: const Color.fromARGB(255, 124, 167, 241),
+        backgroundColor:const Color.fromRGBO(5, 111, 146, 1),
       ),
       body: IndexedStack(
-          index: currentPage,
-          children: [
-            homeContent(),
-            ...pages,
-          ],
+        index: currentPage,
+        children: [
+          homeContent(),
+          ...pages,
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentPage,
@@ -86,24 +86,23 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(10.0),
             child: Column(
               children: [
+                SizedBox(height:15),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(10.0),
-                      child: CircleAvatar(
-                        radius: constraints.maxWidth * 0.2,
-                        child: Image.asset('images/logo.jpg'),
+                      child: Container(
+                        height: 150,
+                        width: 150,
+                        child: Image.asset('assets/images/logo.jpeg')
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                SizedBox(height:15),
+               Column(
                     children: [
                       Text(
                         "Sakal Palliwal Jain Society,",
@@ -124,7 +123,7 @@ class _HomePageState extends State<HomePage> {
                               constraints.maxWidth * 0.005, // Removed const
                           shadows: [
                             Shadow(
-                              color: Colors.blue,
+                              color: const Color.fromRGBO(5, 111, 146, 1),
                               blurRadius:
                                   constraints.maxWidth * 0.012, // Removed const
                               offset: Offset(
@@ -155,15 +154,15 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 15),
+                
+                const SizedBox(height: 50 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                            const Color.fromARGB(255, 109, 158, 243),
+                            const Color.fromRGBO(5, 111, 146, 1),
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.only(
                             topRight: Radius.circular(25),
@@ -172,7 +171,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => LoginPage()));
                       },
                       child: Row(
                         children: [

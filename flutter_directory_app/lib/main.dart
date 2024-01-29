@@ -4,6 +4,7 @@ import 'package:flutter_directory_app/firebase_options.dart';
 import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/login_page.dart';
 import 'package:flutter_directory_app/register_details_page.dart';
+
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -41,15 +42,15 @@ class MyApp extends StatelessWidget {
         textTheme: const TextTheme(
             titleLarge: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 25,
+              fontSize: 30,
             ),
             titleMedium: TextStyle(
-              fontSize: 20,
+              fontSize: 25,
               fontWeight: FontWeight.bold,
             ),
             bodySmall: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 20,
             )),
         fontFamily: 'Lato',
         colorScheme: ColorScheme.fromSeed(
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home:const HomePage(),
+     
     );
   }
 }

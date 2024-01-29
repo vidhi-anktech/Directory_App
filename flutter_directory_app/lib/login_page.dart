@@ -64,26 +64,26 @@ void _sendOTP() async{
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Verify Your Mobile Number",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
-                      letterSpacing: 1.5,
-                      shadows: [
-                        Shadow(
-                          color: Theme.of(context).colorScheme.primary,
-                          blurRadius: 4.0,
-                          offset: const Offset(-2.0, 2.0),
-                        ),
-                      ],
+             
+                  FittedBox(
+                    fit: BoxFit.contain,
+                    child: Text(
+                      "Verify Your Mobile Number",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25,
+                        letterSpacing: 1.5,
+                        shadows: [
+                          Shadow(
+                            color: Theme.of(context).colorScheme.primary,
+                            blurRadius: 4.0,
+                            offset: const Offset(-2.0, 2.0),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                
               const SizedBox(height: 50),
               TextFormField(
                 controller: _phoneController,
@@ -126,7 +126,7 @@ void _sendOTP() async{
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                  backgroundColor: const Color.fromARGB(255, 109, 158, 243),
+                  backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(

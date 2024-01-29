@@ -1,0 +1,755 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
+
+// class ImagePickerWidget extends StatefulWidget {
+//   final File? image;
+//   final void Function(File?) onImageSelected;
+
+//   const ImagePickerWidget({
+//     Key? key,
+//     required this.image,
+//     required this.onImageSelected,
+//   }) : super(key: key);
+
+//   @override
+//   _ImagePickerWidgetState createState() => _ImagePickerWidgetState();
+// }
+
+// class _ImagePickerWidgetState extends State<ImagePickerWidget> {
+//   final _imagePicker = ImagePicker();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       children: [
+//         widget.image != null
+//             ? Image.file(
+//                 widget.image!,
+//                 height: 100,
+//                 width: 100,
+//               )
+//             : const SizedBox(height: 8),
+//         Row(
+//           children: <Widget>[
+//             Expanded(
+//               child: TextField(
+//                 decoration: InputDecoration(
+//                   hintText: 'Upload colored photograph',
+//                   suffixIcon: IconButton(
+//                     icon: const Icon(Icons.camera_alt_rounded),
+//                     onPressed: () {
+//                       _captureImage(widget.onImageSelected);
+//                     },
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             Container(
+//               decoration: BoxDecoration(
+//                 color: Colors.blue[800],
+//                 borderRadius: const BorderRadius.only(
+//                   topRight: Radius.circular(10),
+//                 ),
+//               ),
+//               child: IconButton(
+//                 icon: const Icon(
+//                   Icons.photo,
+//                   color: Colors.white,
+//                 ),
+//                 onPressed: () {
+//                   _pickImage(widget.onImageSelected);
+//                 },
+//               ),
+//             )
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+
+//   Future<void> _pickImage(void Function(File?) onImageSelected) async {
+//     final pickedFile =
+//         await _imagePicker.pickImage(source: ImageSource.gallery);
+//     onImageSelected(File(pickedFile!.path));
+//   }
+  
+
+//   Future<void> _captureImage(void Function(File?) onImageSelected) async {
+//     final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
+//     onImageSelected(File(pickedFile!.path));
+//   }
+// }
+
+// class RegistrationPage extends StatefulWidget {
+//   const RegistrationPage({Key? key}) : super(key: key);
+
+//   @override
+//   State<RegistrationPage> createState() => _RegistrationPageState();
+// }
+
+// class _RegistrationPageState extends State<RegistrationPage> {
+//   bool _validate = false;
+//   // File? hProfilePic;
+//   final headNameController = TextEditingController();
+//   final headGotraController = TextEditingController();
+//   final headOccupationController = TextEditingController();
+//   final headContactController = TextEditingController();
+//   final headBirthplaceController = TextEditingController();
+//   final headCurrentAddressController = TextEditingController();
+//   File? headImage;
+
+//   final wifeNameController = TextEditingController();
+//   final wifeGotraController = TextEditingController();
+//   final wifeOccupationController = TextEditingController();
+//   final wifeContactController = TextEditingController();
+//   final wifeBirthplaceController = TextEditingController();
+//   final wifeCurrentAddressController = TextEditingController();
+//   // File? wifeImage;
+
+//   void clearRegScreen() {
+//     headNameController.clear();
+//     headGotraController.clear();
+//     headOccupationController.clear();
+//     headContactController.clear();
+//     headBirthplaceController.clear();
+//     headCurrentAddressController.clear();
+//     headImage = null;
+//     wifeNameController.clear();
+//     wifeGotraController.clear();
+//     wifeOccupationController.clear();
+//     wifeContactController.clear();
+//     wifeBirthplaceController.clear();
+//     wifeCurrentAddressController.clear();
+//     // wifeImage = null;
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         centerTitle: true,
+//         title: Text(
+//           'Family Registration',
+//           style: TextStyle(
+//             fontWeight: FontWeight.bold,
+//             fontSize: 25,
+//             letterSpacing: 1.5,
+//             shadows: [
+//               Shadow(
+//                 color: Theme.of(context).colorScheme.primary,
+//                 blurRadius: 4.0,
+//                 offset: const Offset(-2.0, 2.0),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: SingleChildScrollView(
+//           child: Column(
+//             children: [
+//               _buildPersonForm("Householder"),
+//               const SizedBox(height: 20),
+//               _buildPersonForm("Spouse"),
+//               const SizedBox(height: 20),
+//               ElevatedButton(
+//                 onPressed: (){
+//                   _submitForm();
+//                   // saveUser();
+//                 },
+//                 style: ElevatedButton.styleFrom(
+//                   shape: const RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.all(Radius.circular(10)),
+//                   ),
+//                   backgroundColor: const Color.fromARGB(255, 109, 158, 243),
+//                   foregroundColor: Colors.white,
+//                 ),
+//                 child: const Text(
+//                   "Register Now",
+//                   style: TextStyle(
+//                     fontSize: 20,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildPersonForm(String title) {
+//     return Card(
+//       elevation: 4.0,
+//       child: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               title,
+//               style: const TextStyle(
+//                 fontWeight: FontWeight.bold,
+//                 fontSize: 20,
+//               ),
+//             ),
+//             const SizedBox(height: 10),
+//             ImagePickerWidget(
+//               // image: title == "Householder" ? headImage : wifeImage,
+//               image: headImage,
+//               onImageSelected: (file) {
+//                 setState(() {
+//               //     if (title == "Householder") {
+//               //       headImage = file;
+//               //     } else {
+//               //       wifeImage = file;
+//               //     }
+//               //   });
+//               // },
+//               headImage =file;
+//                 });
+//               }
+//             ),
+//             _buildTextField(
+//                 '$title Name',
+//                 title == "Householder"
+//                     ? headNameController
+//                     : wifeNameController),
+//             _buildTextField(
+//                 '$title Gotra',
+//                 title == "Householder"
+//                     ? headGotraController
+//                     : wifeGotraController),
+//             _buildTextField(
+//                 '$title Occupation',
+//                 title == "Householder"
+//                     ? headOccupationController
+//                     : wifeOccupationController),
+//             _buildTextField(
+//                 '$title Contact',
+//                 title == "Householder"
+//                     ? headContactController
+//                     : wifeContactController),
+//             _buildTextField(
+//                 '$title Birthplace',
+//                 title == "Householder"
+//                     ? headBirthplaceController
+//                     : wifeBirthplaceController),
+//             _buildTextField(
+//                 '$title CurrentAddress',
+//                 title == "Householder"
+//                     ? headCurrentAddressController
+//                     : wifeCurrentAddressController),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildTextField(String label, TextEditingController controller) {
+//     return TextField(
+//       cursorColor: Colors.black,
+//       controller: controller,
+//       decoration: InputDecoration(
+//         hintText: label,
+//         errorText: _validate && controller.text.isEmpty ? 'Required' : null,
+//       ),
+//     );
+//   }
+
+//   void _submitForm() {
+//     setState(() {
+//       _validate = true;
+//       clearRegScreen();
+//     });
+
+//     if (_validateForm()) {
+//       final headData = {
+//         'Name': headNameController.text,
+//         'Gotra': headGotraController.text,
+//         'Occupation': headOccupationController.text,
+//         'Contact': headContactController.text,
+//         'Birthplace': headBirthplaceController.text,
+//         'CurrentAddress': headCurrentAddressController.text,
+//         'Photo': headImage?.path,
+//       };
+
+//       final wifeData = {
+//         'Name': wifeNameController.text,
+//         'Gotra': wifeGotraController.text,
+//         'Occupation': wifeOccupationController.text,
+//         'Contact': wifeContactController.text,
+//         'Birthplace': wifeBirthplaceController.text,
+//         'CurrentAddress': wifeCurrentAddressController.text,
+//         // 'Photo': wifeImage?.path,
+//         'Photo': headImage?.path,
+//       };
+
+//       print('Head of the Family: $headData');
+//       print('Wife: $wifeData');
+//     }
+//   }
+
+//   bool _validateForm() {
+//     return headNameController.text.isNotEmpty &&
+//         headGotraController.text.isNotEmpty &&
+//         headOccupationController.text.isNotEmpty &&
+//         headContactController.text.isNotEmpty &&
+//         headBirthplaceController.text.isNotEmpty &&
+//         headCurrentAddressController.text.isNotEmpty &&
+//         wifeNameController.text.isNotEmpty &&
+//         wifeGotraController.text.isNotEmpty &&
+//         wifeOccupationController.text.isNotEmpty &&
+//         wifeContactController.text.isNotEmpty &&
+//         wifeBirthplaceController.text.isNotEmpty &&
+//         wifeCurrentAddressController.text.isNotEmpty;
+//         //  &&
+//         // headImage != null ;
+//         // &&
+//         // wifeImage != null;
+//   }
+
+//    void saveUser() async {
+ 
+//     String hName = headNameController.text.trim();
+//     String hGotra = headGotraController.text.trim();
+//     String hOccupation = headOccupationController.text.trim();
+//     String hContactString = headContactController.text.trim();
+//     String hBirthplace = headBirthplaceController.text.trim();
+//     String hCurrentAddress = headCurrentAddressController.text.trim();
+//     String wName = wifeNameController.text.trim();
+//     String wGotra = wifeGotraController.text.trim();
+//     String wOccupation = wifeOccupationController.text.trim();
+//     String wContactString = wifeContactController.text.trim();
+//     String wBirthplace = wifeBirthplaceController.text.trim();
+//     String wCurrentAddress = wifeCurrentAddressController.text.trim();
+
+//     if (hName != "" && hGotra != "" ) {
+//       UploadTask uploadTask = FirebaseStorage.instance
+//           .ref()
+//           .child("ProfilePictures")
+//           .child(Uuid().v1())
+//           .putFile(headImage!);
+
+//       StreamSubscription taskSubscription = uploadTask.snapshotEvents.listen(
+//         (snapshot) {
+//           double percentage =
+//               snapshot.bytesTransferred / snapshot.totalBytes * 100;
+//           print(percentage.toString());
+//         },
+//       );
+
+//       TaskSnapshot taskSnapshot = await uploadTask;
+
+//       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+//       taskSubscription.cancel();
+
+//       Map<String, dynamic> userData = {
+//         "hName": hName,
+//         "hGotra": hGotra,
+//         "hOccupation": hOccupation,
+//         "hContact": hContactString,
+//         "hBirthPlace": hBirthplace,
+//         "hCurrentAddress": hCurrentAddress,
+//         "headImage": downloadUrl,
+//         "wName": wName,
+//         "wGotra": wGotra,
+//         "wOccupation": wOccupation,
+//         "wContact": wContactString,
+//         "wBirthPlace": wBirthplace,
+//         "wCurrentAddress": wCurrentAddress,
+//       };
+
+//       await FirebaseFirestore.instance
+//           .collection("directory-users")
+//           .add(userData);
+
+//       print("User Created!");
+//     } else {
+//       print("User not created");
+//     }
+
+//     setState(() {
+//       headImage = null;
+//     });
+// }
+
+// }
+
+
+
+
+// class RegistrationPage extends StatefulWidget {
+//   const RegistrationPage({super.key});
+
+//   @override
+//   State<RegistrationPage> createState() => _RegistrationPageState();
+// }
+
+// class _RegistrationPageState extends State<RegistrationPage> {
+//   bool _validate = false;
+
+// final heheController = TextEditingController();
+//   final TextEditingController headNameController = TextEditingController();
+//   final TextEditingController headGotraController = TextEditingController();
+//   final TextEditingController headOccupationController =
+//       TextEditingController();
+//   final TextEditingController headContactController = TextEditingController();
+//   final TextEditingController headBirthplaceController =
+//       TextEditingController();
+//   final TextEditingController headCurrentAddressController =
+//       TextEditingController();
+//   File? headImage;
+
+//   final TextEditingController wifeNameController = TextEditingController();
+//   final TextEditingController wifeGotraController = TextEditingController();
+//   final TextEditingController wifeOccupationController =
+//       TextEditingController();
+//   final TextEditingController wifeContactController = TextEditingController();
+//   final TextEditingController wifeBirthplaceController =
+//       TextEditingController();
+//   final TextEditingController wifeCurrentAddressController =
+//       TextEditingController();
+//   // File? wifeImage;
+
+//   final _imagePicker = ImagePicker();
+
+//   final border = const OutlineInputBorder(
+//       borderRadius: BorderRadius.horizontal(left: Radius.circular(5)));
+
+//   @override
+//   void dispose() {
+//     super.dispose();
+//   }
+
+//   void clearRegScreen(){
+//     headNameController.clear();
+//     headGotraController.clear();
+//     headOccupationController.clear();
+//     headContactController.clear();
+//     headBirthplaceController.clear();
+//     headCurrentAddressController.clear();
+//     headImage=null;
+//      wifeNameController.clear();
+//     wifeGotraController.clear();
+//     wifeOccupationController.clear();
+//     wifeContactController.clear();
+//     wifeBirthplaceController.clear();
+//     wifeCurrentAddressController.clear();
+//     // wifeImage=null;
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         centerTitle: true,
+//         title: Text(
+//           'Family Registration',
+//           style: TextStyle(
+//             fontWeight: FontWeight.bold,
+//             fontSize: 25,
+//             letterSpacing: 1.5,
+//             shadows: [
+//               Shadow(
+//                 color: Theme.of(context).colorScheme.primary,
+//                 blurRadius: 4.0,
+//                 offset: const Offset(-2.0, 2.0),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: SingleChildScrollView(
+//           child: Column(
+//             children: [
+//               _buildPersonForm("Householder"),
+//               const SizedBox(height: 20),
+//               _buildPersonForm("Spouse"),
+//               const SizedBox(height: 20),
+//               ElevatedButton(
+//                 onPressed: _submitForm,
+//                 style: ElevatedButton.styleFrom(
+//                   shape: const RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.all(Radius.circular(10)),
+//                   ),
+//                   backgroundColor: const Color.fromARGB(255, 109, 158, 243),
+//                   foregroundColor: Colors.white,
+//                 ),
+//                 child: const Text(
+//                   "Register Now",
+//                   style: TextStyle(
+//                     fontSize: 20,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildPersonForm(String title) {
+//     return Card(
+//       elevation: 4.0,
+//       child: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               title,
+//               style: const TextStyle(
+//                 fontWeight: FontWeight.bold,
+//                 fontSize: 20,
+//               ),
+//             ),
+//             const SizedBox(height: 10),
+//             _buildImagePicker('$title Photo',
+//                 headImage, (file) {
+//               setState(() {
+//               headImage = file;
+//               });
+//             }),
+//             _buildTextField(
+//                 '$title Name',
+//                 title == "Householder"
+//                     ? headNameController
+//                     : wifeNameController),
+//             _buildTextField(
+//                 '$title Gotra',
+//                 title == "Householder"
+//                     ? headGotraController
+//                     : wifeGotraController),
+//             _buildTextField(
+//                 '$title Occupation',
+//                 title == "Householder"
+//                     ? headOccupationController
+//                     : wifeOccupationController),
+//             _buildTextField(
+//                 '$title Contact',
+//                 title == "Householder"
+//                     ? headContactController
+//                     : wifeContactController),
+//             _buildTextField(
+//                 '$title Birthplace',
+//                 title == "Householder"
+//                     ? headBirthplaceController
+//                     : wifeBirthplaceController),
+//             _buildTextField(
+//                 '$title CurrentAddress',
+//                 title == "Householder"
+//                     ? headCurrentAddressController
+//                     : wifeCurrentAddressController),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildTextField(String label, TextEditingController controller) {
+//     return TextField(
+//       cursorColor: Colors.black,
+//       controller: controller,
+//       decoration: InputDecoration(
+//         hintText: label,
+//         errorText: _validate && controller.text.isEmpty ? 'Required' : null,
+//       ),
+//     );
+//   }
+
+//   Widget _buildImagePicker(
+//       String label, File? image, void Function(File?) onImageSelected) {
+//     return Column(
+//       children: [
+//         image != null
+//             ? Image.file(
+//                 image,
+//                 height: 100,
+//                 width: 100,
+//               )
+//             : const SizedBox(height: 8),
+//         Row(
+//           children: <Widget>[
+//             Expanded(
+//               child: TextField(
+//                 decoration: InputDecoration(
+//                   hintText: 'Upload coloured photograph',
+//                   errorText: _validate && image == null ? 'Required' : null,
+//                   suffixIcon: IconButton(
+//                     icon: Icon(Icons.upload_file),
+//                     onPressed: () {
+//                       _pickImage(onImageSelected);
+//                     },
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             Container(
+//               decoration: BoxDecoration(
+//                   color: Colors.blue[800],
+//                   borderRadius:
+//                       const BorderRadius.only(topRight: Radius.circular(10))),
+//               child: IconButton(
+//                 icon: const Icon(
+//                   Icons.photo,
+//                   color: Colors.white,
+//                 ),
+//                 onPressed: () {
+//                   _captureImage(onImageSelected);
+//                 },
+//               ),
+//             )
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+
+//   Future<void> _pickImage(void Function(File?) onImageSelected) async {
+//     final pickedFile =
+//         await _imagePicker.pickImage(source: ImageSource.gallery);
+//     onImageSelected(File(pickedFile!.path));
+//   }
+
+//   Future<void> _captureImage(void Function(File?) onImageSelected) async {
+//     final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
+//     onImageSelected(File(pickedFile!.path));
+//   }
+
+//   void _submitForm() {
+//     setState(() {
+//       _validate = true;
+//       clearRegScreen();
+//     });
+
+//     if (_validateForm()) {
+//       // Handle form data submission
+//       final headData = {
+//         'Name': headNameController.text,
+//         'Gotra': headGotraController.text,
+//         'Occupation': headOccupationController.text,
+//         'Contact': headContactController.text,
+//         'Birthplace': headBirthplaceController.text,
+//         'CurrentAddress': headCurrentAddressController.text,
+//         'Photo': headImage?.path,
+//       };
+
+//       final wifeData = {
+//         'Name': wifeNameController.text,
+//         'Gotra': wifeGotraController.text,
+//         'Occupation': wifeOccupationController.text,
+//         'Contact': wifeContactController.text,
+//         'Birthplace': wifeBirthplaceController.text,
+//         'CurrentAddress': wifeCurrentAddressController.text,
+//         'Photo': headImage?.path,
+//       };
+
+//       print('Head of the Family: $headData');
+//       print('Wife: $wifeData');
+
+//       // You can save the data or perform other actions here
+//     }
+//   }
+
+//   bool _validateForm() {
+//     return headNameController.text.isNotEmpty &&
+//         headGotraController.text.isNotEmpty &&
+//         headOccupationController.text.isNotEmpty &&
+//         headContactController.text.isNotEmpty &&
+//         headBirthplaceController.text.isNotEmpty &&
+//         headCurrentAddressController.text.isNotEmpty &&
+//         wifeNameController.text.isNotEmpty &&
+//         wifeGotraController.text.isNotEmpty &&
+//         wifeOccupationController.text.isNotEmpty &&
+//         wifeContactController.text.isNotEmpty &&
+//         wifeBirthplaceController.text.isNotEmpty &&
+//         wifeCurrentAddressController.text.isNotEmpty
+//         //  &&
+//         // headImage != null &&
+//         // wifeImage != null
+//         ;
+//   }
+//   void saveUser() async {
+ 
+//     String hName = headNameController.text.trim();
+//     String hGotra = headGotraController.text.trim();
+//     String hOccupation = headOccupationController.text.trim();
+//     String hContactString = headContactController.text.trim();
+//     String hBirthplace = headBirthplaceController.text.trim();
+//     String hCurrentAddress = headCurrentAddressController.text.trim();
+//     String wName = wifeNameController.text.trim();
+//     String wGotra = wifeGotraController.text.trim();
+//     String wOccupation = wifeOccupationController.text.trim();
+//     String wContactString = wifeContactController.text.trim();
+//     String wBirthplace = wifeBirthplaceController.text.trim();
+//     String wCurrentAddress = wifeCurrentAddressController.text.trim();
+
+//     if (hName != "" && hGotra != "" ) {
+//       UploadTask uploadTask = FirebaseStorage.instance
+//           .ref()
+//           .child("ProfilePictures")
+//           .child(Uuid().v1())
+//           .putFile(headImage!);
+
+//       StreamSubscription taskSubscription = uploadTask.snapshotEvents.listen(
+//         (snapshot) {
+//           double percentage =
+//               snapshot.bytesTransferred / snapshot.totalBytes * 100;
+//           print(percentage.toString());
+//         },
+//       );
+
+//       TaskSnapshot taskSnapshot = await uploadTask;
+
+//       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+//       taskSubscription.cancel();
+
+//       Map<String, dynamic> userData = {
+//         "hName": hName,
+//         "hGotra": hGotra,
+//         "hOccupation": hOccupation,
+//         "hContact": hContactString,
+//         "hBirthPlace": hBirthplace,
+//         "hCurrentAddress": hCurrentAddress,
+//         "headImage": downloadUrl,
+//         "wName": wName,
+//         "wGotra": wGotra,
+//         "wOccupation": wOccupation,
+//         "wContact": wContactString,
+//         "wBirthPlace": wBirthplace,
+//         "wCurrentAddress": wCurrentAddress,
+//       };
+
+//       await FirebaseFirestore.instance
+//           .collection("directory-users")
+//           .add(userData);
+
+//       print("User Created!");
+//     } else {
+//       print("User not created");
+//     }
+
+//     setState(() {
+//       headImage = null;
+//     });
+// }
+// }
+
+#1a6985
+
+6, 99, 131, 1

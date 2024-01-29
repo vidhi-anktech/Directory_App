@@ -88,7 +88,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                  backgroundColor: const Color.fromARGB(255, 109, 158, 243),
+                  backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(

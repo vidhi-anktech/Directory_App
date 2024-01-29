@@ -1,6 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -10,57 +15,40 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  bool _validate = false;
+  final bool validate = false;
 
-final heheController = TextEditingController();
   final TextEditingController headNameController = TextEditingController();
+
   final TextEditingController headGotraController = TextEditingController();
+
   final TextEditingController headOccupationController =
       TextEditingController();
+
   final TextEditingController headContactController = TextEditingController();
+
   final TextEditingController headBirthplaceController =
       TextEditingController();
+
   final TextEditingController headCurrentAddressController =
       TextEditingController();
-  File? headImage;
 
   final TextEditingController wifeNameController = TextEditingController();
+
   final TextEditingController wifeGotraController = TextEditingController();
+
   final TextEditingController wifeOccupationController =
       TextEditingController();
+
   final TextEditingController wifeContactController = TextEditingController();
+
   final TextEditingController wifeBirthplaceController =
       TextEditingController();
+
   final TextEditingController wifeCurrentAddressController =
       TextEditingController();
-  File? wifeImage;
 
-  final _imagePicker = ImagePicker();
-
-  final border = const OutlineInputBorder(
-      borderRadius: BorderRadius.horizontal(left: Radius.circular(5)));
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  void clearRegScreen(){
-    headNameController.clear();
-    headGotraController.clear();
-    headOccupationController.clear();
-    headContactController.clear();
-    headBirthplaceController.clear();
-    headCurrentAddressController.clear();
-    headImage=null;
-     wifeNameController.clear();
-    wifeGotraController.clear();
-    wifeOccupationController.clear();
-    wifeContactController.clear();
-    wifeBirthplaceController.clear();
-    wifeCurrentAddressController.clear();
-    wifeImage=null;
-  }
+  File? headProfilePic;
+  File? wifeProfilePic;
 
   @override
   Widget build(BuildContext context) {
@@ -84,39 +72,109 @@ final heheController = TextEditingController();
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildPersonForm("Householder"),
-              const SizedBox(height: 20),
-              _buildPersonForm("Spouse"),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
-                  backgroundColor: const Color.fromARGB(255, 109, 158, 243),
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text(
-                  "Register Now",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        padding: const EdgeInsets.all(10.0),
+        child: ListView(
+          children: [
+            GestureDetector(
+              onTap: () async {
+                final selectedImage =
+                    await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (selectedImage != null) {
+                  File convertedFile = File(selectedImage.path);
+                  setState(() {
+                    headProfilePic = convertedFile;
+                    print("setstate triggered");
+                  });
+                  print("Image selected");
+                } else {
+                  print("No image selected");
+                }
+              },
+              child: Container(
+                height: 150,
+                width: 150,
+                child: headProfilePic == null
+                    ? Image.asset('assets/images/user.png')
+                    : Image.file(headProfilePic!),
               ),
-            ],
+            ),
+            const SizedBox(height: 5),
+            const Center(
+              child: Text(
+                'Tap to select your profile photo',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 5),
+            _buildPersonForm("Householder"),
+            SizedBox(height: 10),
+            GestureDetector(
+              onTap: () async {
+                final selectedImage =
+                    await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (selectedImage != null) {
+                  File wConvertedFile = File(selectedImage.path);
+                  setState(() {
+                    wifeProfilePic = wConvertedFile;
+                    print("setstate triggered");
+                  });
+                  print("Image selected");
+                } else {
+                  print("No image selected");
+                }
+              },
+              child: Container(
+                height: 150,
+                width: 150,
+                child: wifeProfilePic == null
+                    ? Image.asset('assets/images/user.png')
+                    : Image.file(wifeProfilePic!),
+              ),
+            ),
+            const SizedBox(height: 5),
+            const Center(
+              child: Text(
+                'Tap to select your profile photo',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 5),
+            _buildPersonForm("Spouse"),
+            SizedBox(height: 10),
+            _buildRegisterNowButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _buildRegisterNowButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+      child: ElevatedButton(
+        onPressed: () {
+          saveUser();
+          submitForm();
+        },
+        style: ElevatedButton.styleFrom(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
+          foregroundColor: Colors.white,
+        ),
+        child: const Text(
+          "Register Now",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPersonForm(String title) {
+  _buildPersonForm(String title) {
     return Card(
       elevation: 4.0,
       child: Padding(
@@ -132,43 +190,33 @@ final heheController = TextEditingController();
               ),
             ),
             const SizedBox(height: 10),
-            _buildImagePicker('$title Photo',
-                title == "Householder" ? headImage : wifeImage, (file) {
-              setState(() {
-                if (title == "Householder") {
-                  headImage = file;
-                } else {
-                  wifeImage = file;
-                }
-              });
-            }),
             _buildTextField(
-                '$title Name',
+                '${title} Name',
                 title == "Householder"
                     ? headNameController
                     : wifeNameController),
             _buildTextField(
-                '$title Gotra',
+                '${title} Gotra',
                 title == "Householder"
                     ? headGotraController
                     : wifeGotraController),
             _buildTextField(
-                '$title Occupation',
+                '${title} Occupation',
                 title == "Householder"
                     ? headOccupationController
                     : wifeOccupationController),
             _buildTextField(
-                '$title Contact',
+                '${title} Contact',
                 title == "Householder"
                     ? headContactController
                     : wifeContactController),
             _buildTextField(
-                '$title Birthplace',
+                '${title} Birthplace',
                 title == "Householder"
                     ? headBirthplaceController
                     : wifeBirthplaceController),
             _buildTextField(
-                '$title CurrentAddress',
+                '${title} CurrentAddress',
                 title == "Householder"
                     ? headCurrentAddressController
                     : wifeCurrentAddressController),
@@ -178,125 +226,140 @@ final heheController = TextEditingController();
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
+  _buildTextField(String label, TextEditingController controller) {
     return TextField(
       cursorColor: Colors.black,
       controller: controller,
       decoration: InputDecoration(
         hintText: label,
-        errorText: _validate && controller.text.isEmpty ? 'Required' : null,
+        errorText: validate && controller.text.isEmpty ? 'Required' : null,
       ),
     );
   }
 
-  Widget _buildImagePicker(
-      String label, File? image, void Function(File?) onImageSelected) {
-    return Column(
-      children: [
-        image != null
-            ? Image.network(
-                image.path,
-                height: 100,
-                width: 100,
-              )
-            : const SizedBox(height: 8),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Upload coloured photograph',
-                  errorText: _validate && image == null ? 'Required' : null,
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.upload_file),
-                    onPressed: () {
-                      _pickImage(onImageSelected);
-                    },
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                  color: Colors.blue[800],
-                  borderRadius:
-                      const BorderRadius.only(topRight: Radius.circular(10))),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.photo,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  _captureImage(onImageSelected);
-                },
-              ),
-            )
-          ],
-        ),
-      ],
-    );
-  }
+  void saveUser() async {
+    String hName = headNameController.text.trim();
+    String hGotra = headGotraController.text.trim();
+    String hOccupation = headOccupationController.text.trim();
+    String hContactString = headContactController.text.trim();
+    String hBirthplace = headBirthplaceController.text.trim();
+    String hCurrentAddress = headCurrentAddressController.text.trim();
+    String wName = wifeNameController.text.trim();
+    String wGotra = wifeGotraController.text.trim();
+    String wOccupation = wifeOccupationController.text.trim();
+    String wContactString = wifeContactController.text.trim();
+    String wBirthplace = wifeBirthplaceController.text.trim();
+    String wCurrentAddress = wifeCurrentAddressController.text.trim();
 
-  Future<void> _pickImage(void Function(File?) onImageSelected) async {
-    final pickedFile =
-        await _imagePicker.pickImage(source: ImageSource.gallery);
-    onImageSelected(File(pickedFile!.path));
-  }
+    if (hName != "" &&
+        hGotra != "" &&
+        wName != "" &&
+        headProfilePic != null &&
+        wifeProfilePic != null) {
+      UploadTask headUploadTask = FirebaseStorage.instance
+          .ref()
+          .child("Profilepictures")
+          .child("headProfilePictures")
+          .child(Uuid().v1())
+          .putFile(headProfilePic!);
 
-  Future<void> _captureImage(void Function(File?) onImageSelected) async {
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
-    onImageSelected(File(pickedFile!.path));
-  }
+      StreamSubscription taskSubscription =
+          headUploadTask.snapshotEvents.listen((snapshot) {
+        double percentage =
+            snapshot.bytesTransferred / snapshot.totalBytes * 100;
+        print(percentage.toString());
+      });
+      TaskSnapshot taskSnapshot = await headUploadTask;
 
-  void _submitForm() {
-    setState(() {
-      _validate = true;
-      clearRegScreen();
-    });
+      String headDownloadUrl = await taskSnapshot.ref.getDownloadURL();
 
-    if (_validateForm()) {
-      // Handle form data submission
-      final headData = {
-        'Name': headNameController.text,
-        'Gotra': headGotraController.text,
-        'Occupation': headOccupationController.text,
-        'Contact': headContactController.text,
-        'Birthplace': headBirthplaceController.text,
-        'CurrentAddress': headCurrentAddressController.text,
-        'Photo': headImage?.path,
+      taskSubscription.cancel();
+
+      UploadTask wifeUploadTask = FirebaseStorage.instance
+          .ref()
+          .child("Profilepictures")
+          .child("wifeProfilePictures")
+          .child(Uuid().v1())
+          .putFile(wifeProfilePic!);
+
+      StreamSubscription wifeTaskSubscription =
+          wifeUploadTask.snapshotEvents.listen((snapshot) {
+        double percentage =
+            snapshot.bytesTransferred / snapshot.totalBytes * 100;
+        print(percentage.toString());
+      });
+      TaskSnapshot wifeTaskSnapshot = await wifeUploadTask;
+
+      String wifeDownloadUrl = await wifeTaskSnapshot.ref.getDownloadURL();
+
+      wifeTaskSubscription.cancel();
+
+      Map<String, dynamic> userData = {
+        "hProfilePic": headDownloadUrl,
+        "hName": hName,
+        "hGotra": hGotra,
+        "hOccupation": hOccupation,
+        "hContact": hContactString,
+        "hBirthPlace": hBirthplace,
+        "hCurrentAddress": hCurrentAddress,
+        "wProfilePic": wifeDownloadUrl,
+        "wName": wName,
+        "wGotra": wGotra,
+        "wOccupation": wOccupation,
+        "wContact": wContactString,
+        "wBirthPlace": wBirthplace,
+        "wCurrentAddress": wCurrentAddress,
       };
 
-      final wifeData = {
-        'Name': wifeNameController.text,
-        'Gotra': wifeGotraController.text,
-        'Occupation': wifeOccupationController.text,
-        'Contact': wifeContactController.text,
-        'Birthplace': wifeBirthplaceController.text,
-        'CurrentAddress': wifeCurrentAddressController.text,
-        'Photo': wifeImage?.path,
-      };
+      await FirebaseFirestore.instance
+          .collection("directory-users")
+          .add(userData);
 
-      print('Head of the Family: $headData');
-      print('Wife: $wifeData');
-
-      // You can save the data or perform other actions here
+      print("User Created!");
+    } else {
+      print("User not created");
     }
   }
 
-  bool _validateForm() {
-    return headNameController.text.isNotEmpty &&
-        headGotraController.text.isNotEmpty &&
-        headOccupationController.text.isNotEmpty &&
-        headContactController.text.isNotEmpty &&
-        headBirthplaceController.text.isNotEmpty &&
-        headCurrentAddressController.text.isNotEmpty &&
-        wifeNameController.text.isNotEmpty &&
-        wifeGotraController.text.isNotEmpty &&
-        wifeOccupationController.text.isNotEmpty &&
-        wifeContactController.text.isNotEmpty &&
-        wifeBirthplaceController.text.isNotEmpty &&
-        wifeCurrentAddressController.text.isNotEmpty &&
-        headImage != null &&
-        wifeImage != null;
+  void submitForm() {
+    setState(() {
+      clearRegScreen();
+    });
+
+    final headData = {
+      'hName': headNameController.text.trim(),
+      'hGotra': headGotraController.text.trim(),
+      'hOccupation': headOccupationController.text.trim(),
+      'hContactString': headContactController.text.trim(),
+      'hBirthplace': headBirthplaceController.text.trim(),
+      'hCurrentAddress': headCurrentAddressController.text.trim(),
+    };
+    final wifeData = {
+      'wName': wifeNameController.text.trim(),
+      'wGotra': wifeGotraController.text.trim(),
+      'wOccupation': wifeOccupationController.text.trim(),
+      'wContactString': wifeContactController.text.trim(),
+      'wBirthplace': wifeBirthplaceController.text.trim(),
+      'wCurrentAddress': wifeCurrentAddressController.text.trim(),
+    };
+    print('Head of the Family: $headData');
+    print('Wife: $wifeData');
+  }
+
+  void clearRegScreen() {
+    headNameController.clear();
+    headGotraController.clear();
+    headOccupationController.clear();
+    headContactController.clear();
+    headBirthplaceController.clear();
+    headCurrentAddressController.clear();
+    headProfilePic = null;
+    wifeNameController.clear();
+    wifeGotraController.clear();
+    wifeOccupationController.clear();
+    wifeContactController.clear();
+    wifeBirthplaceController.clear();
+    wifeCurrentAddressController.clear();
+    wifeProfilePic = null;
   }
 }
