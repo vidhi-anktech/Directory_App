@@ -753,3 +753,181 @@ import 'package:uuid/uuid.dart';
 #1a6985
 
 6, 99, 131, 1
+
+
+
+  // void saveUser() async {
+  //   String hName = headNameController.text.trim();
+  //   String hGotra = headGotraController.text.trim();
+  //   String hOccupation = headOccupationController.text.trim();
+  //   String hContactString = headContactController.text.trim();
+  //   String hBirthplace = headBirthplaceController.text.trim();
+  //   String hCurrentAddress = headCurrentAddressController.text.trim();
+  //   String wName = wifeNameController.text.trim();
+  //   String wGotra = wifeGotraController.text.trim();
+  //   String wOccupation = wifeOccupationController.text.trim();
+  //   String wContactString = wifeContactController.text.trim();
+  //   String wBirthplace = wifeBirthplaceController.text.trim();
+  //   String wCurrentAddress = wifeCurrentAddressController.text.trim();
+
+  //   if (hName != "" &&
+  //       hGotra != "" &&
+  //       wName != "" &&
+  //       headProfilePic != null &&
+  //       wifeProfilePic != null) {
+  //     UploadTask headUploadTask = FirebaseStorage.instance
+  //         .ref()
+  //         .child("Profilepictures")
+  //         .child("headProfilePictures")
+  //         .child(Uuid().v1())
+  //         .putFile(headProfilePic!);
+
+  //     StreamSubscription taskSubscription =
+  //         headUploadTask.snapshotEvents.listen((snapshot) {
+  //       double percentage =
+  //           snapshot.bytesTransferred / snapshot.totalBytes * 100;
+  //       print(percentage.toString());
+  //     });
+  //     TaskSnapshot taskSnapshot = await headUploadTask;
+
+  //     String headDownloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+  //     taskSubscription.cancel();
+
+  //      print("HEAD PROFILE PICTURE ${headDownloadUrl}");
+
+  //     UploadTask wifeUploadTask = FirebaseStorage.instance
+  //         .ref()
+  //         .child("Profilepictures")
+  //         .child("wifeProfilePictures")
+  //         .child(Uuid().v1())
+  //         .putFile(wifeProfilePic!);
+
+  //     StreamSubscription wifeTaskSubscription =
+  //         wifeUploadTask.snapshotEvents.listen((snapshot) {
+  //       double percentage =
+  //           snapshot.bytesTransferred / snapshot.totalBytes * 100;
+  //       print(percentage.toString());
+  //     });
+  //     TaskSnapshot wifeTaskSnapshot = await wifeUploadTask;
+
+  //     String wifeDownloadUrl = await wifeTaskSnapshot.ref.getDownloadURL();
+
+  //     wifeTaskSubscription.cancel();
+
+  //     print("WIFE PROFILE PICTURE ${wifeDownloadUrl}");
+
+  //     Map<String, dynamic> userData = {
+  //       "hProfilePic": headDownloadUrl,
+  //       "hName": hName,
+  //       "hGotra": hGotra,
+  //       "hOccupation": hOccupation,
+  //       "hContact": hContactString,
+  //       "hBirthPlace": hBirthplace,
+  //       "hCurrentAddress": hCurrentAddress,
+  //       "wProfilePic": wifeDownloadUrl,
+  //       "wName": wName,
+  //       "wGotra": wGotra,
+  //       "wOccupation": wOccupation,
+  //       "wContact": wContactString,
+  //       "wBirthPlace": wBirthplace,
+  //       "wCurrentAddress": wCurrentAddress,
+  //     };
+
+  //   await FirebaseFirestore.instance
+  //         .collection("directory-users")
+  //         .add(userData);
+
+  //     print("User Created!");
+  //   } else {
+  //     print("User not created");
+  //   }
+  //    setState(() {
+  //     headProfilePic = null;
+  //     wifeProfilePic = null;
+  //   });
+  // }
+
+
+// Future<void> saveUser() async {
+//   try {
+//     String hName = headNameController.text.trim();
+//     String hGotra = headGotraController.text.trim();
+//     String hOccupation = headOccupationController.text.trim();
+//     String hContactString = headContactController.text.trim();
+//     String hBirthplace = headBirthplaceController.text.trim();
+//     String hCurrentAddress = headCurrentAddressController.text.trim();
+//     String wName = wifeNameController.text.trim();
+//     String wGotra = wifeGotraController.text.trim();
+//     String wOccupation = wifeOccupationController.text.trim();
+//     String wContactString = wifeContactController.text.trim();
+//     String wBirthplace = wifeBirthplaceController.text.trim();
+//     String wCurrentAddress = wifeCurrentAddressController.text.trim();
+
+//     if (hName.isNotEmpty &&
+//         hGotra.isNotEmpty &&
+//         wName.isNotEmpty &&
+//         headProfilePic != null &&
+//         wifeProfilePic != null) {
+//       final UploadTask headUploadTask = FirebaseStorage.instance
+//           .ref()
+//           .child("Profilepictures")
+//           .child("headProfilePictures")
+//           .child(Uuid().v1())
+//           .putFile(headProfilePic!);
+
+//       final TaskSnapshot headTaskSnapshot = await headUploadTask;
+
+//       final String headDownloadUrl =
+//           await headTaskSnapshot.ref.getDownloadURL();
+
+//       print("HEAD PROFILE PICTURE: $headDownloadUrl");
+
+//       final UploadTask wifeUploadTask = FirebaseStorage.instance
+//           .ref()
+//           .child("Profilepictures")
+//           .child("wifeProfilePictures")
+//           .child(Uuid().v1())
+//           .putFile(wifeProfilePic!);
+
+//       final TaskSnapshot wifeTaskSnapshot = await wifeUploadTask;
+
+//       final String wifeDownloadUrl =
+//           await wifeTaskSnapshot.ref.getDownloadURL();
+
+//       print("WIFE PROFILE PICTURE: $wifeDownloadUrl");
+
+//       Map<String, dynamic> userData = {
+//         "hProfilePic": headDownloadUrl,
+//         "hName": hName,
+//         "hGotra": hGotra,
+//         "hOccupation": hOccupation,
+//         "hContact": hContactString,
+//         "hBirthPlace": hBirthplace,
+//         "hCurrentAddress": hCurrentAddress,
+//         "wProfilePic": wifeDownloadUrl,
+//         "wName": wName,
+//         "wGotra": wGotra,
+//         "wOccupation": wOccupation,
+//         "wContact": wContactString,
+//         "wBirthPlace": wBirthplace,
+//         "wCurrentAddress": wCurrentAddress,
+//       };
+
+//       await FirebaseFirestore.instance
+//           .collection("directory-users")
+//           .add(userData);
+
+//       print("User Created!");
+//     } else {
+//       print("User not created. Please fill in all required fields.");
+//     }
+//   } catch (error) {
+//     print("Error saving user: $error");
+//   } finally {
+//     setState(() {
+//       headProfilePic = null;
+//       wifeProfilePic = null;
+//     });
+//   }
+// }

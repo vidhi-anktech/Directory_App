@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/show_data.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
@@ -70,6 +71,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ],
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ShowData()),
+              );
+            },
+            icon: const Icon(Icons.exit_to_app),
+            color: Colors.black,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -77,10 +90,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
           children: [
             GestureDetector(
               onTap: () async {
-                final selectedImage =
+                final hSelectedImage =
                     await ImagePicker().pickImage(source: ImageSource.gallery);
-                if (selectedImage != null) {
-                  File convertedFile = File(selectedImage.path);
+                if (hSelectedImage != null) {
+                  File convertedFile = File(hSelectedImage.path);
                   setState(() {
                     headProfilePic = convertedFile;
                     print("setstate triggered");
@@ -110,10 +123,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
-                final selectedImage =
+                final wSelectedImage =
                     await ImagePicker().pickImage(source: ImageSource.gallery);
-                if (selectedImage != null) {
-                  File wConvertedFile = File(selectedImage.path);
+                if (wSelectedImage != null) {
+                  File wConvertedFile = File(wSelectedImage.path);
                   setState(() {
                     wifeProfilePic = wConvertedFile;
                     print("setstate triggered");
@@ -154,7 +167,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       child: ElevatedButton(
         onPressed: () {
           saveUser();
-          submitForm();
+          // submitForm();
         },
         style: ElevatedButton.styleFrom(
           shape: const RoundedRectangleBorder(
@@ -191,32 +204,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
             const SizedBox(height: 10),
             _buildTextField(
-                '${title} Name',
+                '$title Name',
                 title == "Householder"
                     ? headNameController
                     : wifeNameController),
             _buildTextField(
-                '${title} Gotra',
+                '$title Gotra',
                 title == "Householder"
                     ? headGotraController
                     : wifeGotraController),
             _buildTextField(
-                '${title} Occupation',
+                '$title Occupation',
                 title == "Householder"
                     ? headOccupationController
                     : wifeOccupationController),
             _buildTextField(
-                '${title} Contact',
+                '$title Contact',
                 title == "Householder"
                     ? headContactController
                     : wifeContactController),
             _buildTextField(
-                '${title} Birthplace',
+                '$title Birthplace',
                 title == "Householder"
                     ? headBirthplaceController
                     : wifeBirthplaceController),
             _buildTextField(
-                '${title} CurrentAddress',
+                '$title CurrentAddress',
                 title == "Householder"
                     ? headCurrentAddressController
                     : wifeCurrentAddressController),
@@ -232,92 +245,88 @@ class _RegistrationPageState extends State<RegistrationPage> {
       controller: controller,
       decoration: InputDecoration(
         hintText: label,
-        errorText: validate && controller.text.isEmpty ? 'Required' : null,
+        // errorText: validate && controller.text.isEmpty ? 'Required' : null,
       ),
     );
   }
 
-  void saveUser() async {
-    String hName = headNameController.text.trim();
-    String hGotra = headGotraController.text.trim();
-    String hOccupation = headOccupationController.text.trim();
-    String hContactString = headContactController.text.trim();
-    String hBirthplace = headBirthplaceController.text.trim();
-    String hCurrentAddress = headCurrentAddressController.text.trim();
-    String wName = wifeNameController.text.trim();
-    String wGotra = wifeGotraController.text.trim();
-    String wOccupation = wifeOccupationController.text.trim();
-    String wContactString = wifeContactController.text.trim();
-    String wBirthplace = wifeBirthplaceController.text.trim();
-    String wCurrentAddress = wifeCurrentAddressController.text.trim();
+  Future<void> saveUser() async {
+    try {
+      String hName = headNameController.text.trim();
+      String hGotra = headGotraController.text.trim();
+      String hOccupation = headOccupationController.text.trim();
+      String hContactString = headContactController.text.trim();
+      String hBirthplace = headBirthplaceController.text.trim();
+      String hCurrentAddress = headCurrentAddressController.text.trim();
+      String wName = wifeNameController.text.trim();
+      String wGotra = wifeGotraController.text.trim();
+      String wOccupation = wifeOccupationController.text.trim();
+      String wContactString = wifeContactController.text.trim();
+      String wBirthplace = wifeBirthplaceController.text.trim();
+      String wCurrentAddress = wifeCurrentAddressController.text.trim();
 
-    if (hName != "" &&
-        hGotra != "" &&
-        wName != "" &&
-        headProfilePic != null &&
-        wifeProfilePic != null) {
-      UploadTask headUploadTask = FirebaseStorage.instance
+      if (hName.isNotEmpty &&
+          hGotra.isNotEmpty &&
+          wName.isNotEmpty &&
+          headProfilePic != null &&
+          wifeProfilePic != null) {
+        final headDownloadUrl =
+            await uploadFile(headProfilePic!, "headProfilePictures");
+        print("HEAD PROFILE PICTURE: $headDownloadUrl");
+        print("wifeProfilePic: $wifeProfilePic");
+        final wifeDownloadUrl =
+            await uploadFile(wifeProfilePic!, "wifeProfilePictures");
+        print("WIFE PROFILE PICTURE: $wifeDownloadUrl");
+
+        Map<String, dynamic> userData = {
+          "hProfilePic": headDownloadUrl,
+          "hName": hName,
+          "hGotra": hGotra,
+          "hOccupation": hOccupation,
+          "hContact": hContactString,
+          "hBirthPlace": hBirthplace,
+          "hCurrentAddress": hCurrentAddress,
+          "wProfilePic": wifeDownloadUrl,
+          "wName": wName,
+          "wGotra": wGotra,
+          "wOccupation": wOccupation,
+          "wContact": wContactString,
+          "wBirthPlace": wBirthplace,
+          "wCurrentAddress": wCurrentAddress,
+        };
+
+        await FirebaseFirestore.instance
+            .collection("directory-users")
+            .add(userData);
+
+        print("User Created!");
+        submitForm();
+      } else {
+        print("User not created. Please fill in all required fields.");
+      }
+    } catch (error) {
+      print("Error saving user: $error");
+    } finally {
+      setState(() {
+        headProfilePic = null;
+        wifeProfilePic = null;
+      });
+    }
+  }
+
+  Future<String> uploadFile(File file, String folder) async {
+    try {
+      final ref = FirebaseStorage.instance
           .ref()
           .child("Profilepictures")
-          .child("headProfilePictures")
-          .child(Uuid().v1())
-          .putFile(headProfilePic!);
-
-      StreamSubscription taskSubscription =
-          headUploadTask.snapshotEvents.listen((snapshot) {
-        double percentage =
-            snapshot.bytesTransferred / snapshot.totalBytes * 100;
-        print(percentage.toString());
-      });
-      TaskSnapshot taskSnapshot = await headUploadTask;
-
-      String headDownloadUrl = await taskSnapshot.ref.getDownloadURL();
-
-      taskSubscription.cancel();
-
-      UploadTask wifeUploadTask = FirebaseStorage.instance
-          .ref()
-          .child("Profilepictures")
-          .child("wifeProfilePictures")
-          .child(Uuid().v1())
-          .putFile(wifeProfilePic!);
-
-      StreamSubscription wifeTaskSubscription =
-          wifeUploadTask.snapshotEvents.listen((snapshot) {
-        double percentage =
-            snapshot.bytesTransferred / snapshot.totalBytes * 100;
-        print(percentage.toString());
-      });
-      TaskSnapshot wifeTaskSnapshot = await wifeUploadTask;
-
-      String wifeDownloadUrl = await wifeTaskSnapshot.ref.getDownloadURL();
-
-      wifeTaskSubscription.cancel();
-
-      Map<String, dynamic> userData = {
-        "hProfilePic": headDownloadUrl,
-        "hName": hName,
-        "hGotra": hGotra,
-        "hOccupation": hOccupation,
-        "hContact": hContactString,
-        "hBirthPlace": hBirthplace,
-        "hCurrentAddress": hCurrentAddress,
-        "wProfilePic": wifeDownloadUrl,
-        "wName": wName,
-        "wGotra": wGotra,
-        "wOccupation": wOccupation,
-        "wContact": wContactString,
-        "wBirthPlace": wBirthplace,
-        "wCurrentAddress": wCurrentAddress,
-      };
-
-      await FirebaseFirestore.instance
-          .collection("directory-users")
-          .add(userData);
-
-      print("User Created!");
-    } else {
-      print("User not created");
+          .child(folder)
+          .child(Uuid().v1());
+      final uploadTask = ref.putFile(file);
+      final taskSnapshot = await uploadTask;
+      return await taskSnapshot.ref.getDownloadURL();
+    } catch (error) {
+      print("Error uploading file: $error");
+      throw error;
     }
   }
 
@@ -353,13 +362,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
     headContactController.clear();
     headBirthplaceController.clear();
     headCurrentAddressController.clear();
-    headProfilePic = null;
+    // headProfilePic = null;
     wifeNameController.clear();
     wifeGotraController.clear();
     wifeOccupationController.clear();
     wifeContactController.clear();
     wifeBirthplaceController.clear();
     wifeCurrentAddressController.clear();
-    wifeProfilePic = null;
+    // wifeProfilePic = null;
   }
 }
