@@ -5,11 +5,11 @@ import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/login_page.dart';
 import 'package:flutter_directory_app/register_details_page.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-);
+  );
   runApp(const MyApp());
 }
 
@@ -22,11 +22,9 @@ class MyApp extends StatelessWidget {
       title: 'Directory App',
       initialRoute: '/',
       routes: {
-        // When navigating to the "/" route, build the FirstScreen widget.
-        // '/': (context) => const HomePage(),
-        // When navigating to the "/second" route, build the SecondScreen widget.
+        
         '/second': (context) => const LoginPage(),
-        '/third' : (context) => const RegistrationPage(),
+        '/third': (context) => const RegistrationPage(),
       },
       theme: ThemeData(
         inputDecorationTheme: const InputDecorationTheme(
@@ -67,8 +65,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home:const HomePage(),
-     
+      home: HomePage(),
     );
   }
 }

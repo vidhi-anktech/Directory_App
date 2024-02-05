@@ -1,6 +1,7 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/login_page.dart';
-import 'package:flutter_directory_app/register_details_page.dart';
+import 'package:flutter_directory_app/show_data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,8 +14,8 @@ class _HomePageState extends State<HomePage> {
   int currentPage = 0;
   List<Widget> pages = [
     // HomePage(),
-    LoginPage(),
-    RegistrationPage(),
+    ShowData(),
+   
   ];
 
   @override
@@ -42,6 +43,13 @@ class _HomePageState extends State<HomePage> {
         ),
         elevation: 0.00,
         backgroundColor:const Color.fromRGBO(5, 111, 146, 1),
+        // actions: [
+        //    IconButton(
+        //       onPressed: logout,
+        //       icon: const Icon(Icons.exit_to_app),
+        //       color: Colors.white,
+        //     ),
+        // ],
       ),
       body: IndexedStack(
         index: currentPage,
@@ -66,13 +74,10 @@ class _HomePageState extends State<HomePage> {
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.login),
+            icon: Icon(Icons.list),
             label: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_add),
-            label: '',
-          ),
+          
         ],
       ),
     );
@@ -86,7 +91,7 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(10.0),
             child: Column(
               children: [
-                SizedBox(height:15),
+                const SizedBox(height:20),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -94,80 +99,57 @@ class _HomePageState extends State<HomePage> {
                     Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: Container(
-                        height: 150,
-                        width: 150,
+                        height: 200,
+                        width: 200,
                         child: Image.asset('assets/images/logo.jpeg')
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height:15),
+                SizedBox(height:20),
                Column(
                     children: [
-                      Text(
-                        "Sakal Palliwal Jain Society,",
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      Text(
-                        "Jaipur",
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "WELCOMES YOU",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize:
-                              constraints.maxWidth * 0.05, // Removed const
-                          letterSpacing:
-                              constraints.maxWidth * 0.005, // Removed const
-                          shadows: [
-                            Shadow(
-                              color: const Color.fromRGBO(5, 111, 146, 1),
-                              blurRadius:
-                                  constraints.maxWidth * 0.012, // Removed const
-                              offset: Offset(
-                                -constraints.maxWidth * 0.01, // Removed const
-                                constraints.maxWidth * 0.01, // Removed const
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        "at",
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 15),
+                     
                       Text(
                         "Introduction Booklet",
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
+                      const SizedBox(height: 10,),
                       Text(
                         "or",
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      Text(
+                      const SizedBox(height: 10,),
+                      const Text(
                         "Telephone Directory",
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize:
+                              25,
+                          letterSpacing: 1.5,
+                          shadows: [
+                            Shadow(
+                              color: const Color.fromRGBO(5, 111, 146, 1),
+                              blurRadius: 7.0, 
+                              offset: Offset(-2.0, 2.0),
+                              ),
+                          ],
+                            ),
+                        ),
                     ],
                   ),
                 
-                const SizedBox(height: 50 ),
+                const SizedBox(height: 60 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
                             const Color.fromRGBO(5, 111, 146, 1),
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(25),
-                            bottomRight: Radius.circular(25),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(25))
                         ),
                       ),
                       onPressed: () {
@@ -178,21 +160,21 @@ class _HomePageState extends State<HomePage> {
                       },
                       child: Row(
                         children: [
-                          Text(
+                          const Text(
                             'Get Started',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: constraints.maxWidth * 0.04,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           SizedBox(
                             width: constraints.maxWidth * 0.01,
                           ),
-                          Icon(
+                         const Icon(
                             Icons.arrow_forward,
                             color: Colors.white,
-                            size: constraints.maxWidth * 0.03,
+                            size: 20,
                           ),
                         ],
                       ),
@@ -206,4 +188,10 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+  //  void logout() async {
+  //   await FirebaseAuth.instance.signOut();
+  //   Navigator.popUntil(context, (route) => route.isFirst);
+  //   Navigator.pushReplacement(
+  //       context, MaterialPageRoute(builder: (context) => LoginPage()));
+  // }
 }

@@ -931,3 +931,655 @@ import 'package:uuid/uuid.dart';
 //     });
 //   }
 // }
+
+
+// ... Your other imports
+
+class _RegistrationPageState extends State<RegistrationPage> {
+  // ... Your existing variables
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        // ... Your existing app bar
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: ListView(
+          children: [
+            GestureDetector(
+              onTap: () async {
+                // ... Your existing code for selecting head profile picture
+              },
+              child: Container(
+                height: 150,
+                width: 150,
+                child: headProfilePic == null
+                    ? Image.asset('assets/images/user.png')
+                    : Image.file(headProfilePic!),
+              ),
+            ),
+            // ... Your existing code
+
+            // Marking the "Householder" fields as required
+            const SizedBox(height: 5),
+            const Center(
+              child: Text(
+                'Tap to select your profile photo',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 5),
+            _buildPersonForm("Householder"),
+            SizedBox(height: 10),
+            GestureDetector(
+              onTap: () async {
+                // ... Your existing code for selecting wife profile picture
+              },
+              child: Container(
+                height: 150,
+                width: 150,
+                child: wifeProfilePic == null
+                    ? Image.asset('assets/images/user.png')
+                    : Image.file(wifeProfilePic!),
+              ),
+            ),
+            // ... Your existing code
+
+            // Marking the "Spouse" fields as required
+            const SizedBox(height: 5),
+            const Center(
+              child: Text(
+                'Tap to select your profile photo',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 5),
+            _buildPersonForm("Spouse"),
+            SizedBox(height: 10),
+            _buildRegisterNowButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ... Your existing methods
+
+  Future<void> saveUser() async {
+    try {
+      // ... Your existing code
+
+      if (_validateForm()) {
+        // ... Your existing code for uploading images
+
+        Map<String, dynamic> userData = {
+          // ... Your existing code
+        };
+
+        await FirebaseFirestore.instance
+            .collection("directory-users")
+            .add(userData);
+
+        print("User Created!");
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        submitForm();
+      } else {
+        print("User not created. Please fill in all required fields.");
+      }
+    } catch (error) {
+      print("Error saving user: $error");
+    } finally {
+      // ... Your existing code
+    }
+  }
+
+  // ... Your existing methods
+
+  bool _validateForm() {
+    return headNameController.text.isNotEmpty &&
+        headGotraController.text.isNotEmpty &&
+        headOccupationController.text.isNotEmpty &&
+        headContactController.text.isNotEmpty &&
+        headBirthplaceController.text.isNotEmpty &&
+        headCurrentAddressController.text.isNotEmpty &&
+        wifeNameController.text.isNotEmpty &&
+        wifeGotraController.text.isNotEmpty &&
+        wifeOccupationController.text.isNotEmpty &&
+        wifeContactController.text.isNotEmpty &&
+        wifeBirthplaceController.text.isNotEmpty &&
+        wifeCurrentAddressController.text.isNotEmpty &&
+        headProfilePic != null &&
+        wifeProfilePic != null;
+  }
+}
+
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
+class ShowData extends StatefulWidget {
+  const ShowData({Key? key}) : super(key: key);
+
+  @override
+  State<ShowData> createState() => _ShowDataState();
+}
+
+class _ShowDataState extends State<ShowData> {
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ... Existing code
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Admin Panel"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              final String? query = await showSearch(
+                context: context,
+                delegate: CustomSearchDelegate(),
+              );
+
+              if (query != null && query.isNotEmpty) {
+                _searchController.text = query;
+              }
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (query) {
+                  // You can implement live search here if needed
+                },
+                decoration: InputDecoration(
+                  hintText: "Search",
+                  border: border,
+                  enabledBorder: border,
+                  focusedBorder: border,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                    },
+                    icon: const Icon(Icons.clear),
+                  ),
+                ),
+              ),
+            ),
+            // ... Existing code
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CustomSearchDelegate extends SearchDelegate<String> {
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    // Implement search results here based on the query
+    return Container();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    // Implement search suggestions here based on the query
+    return Container();
+  }
+}
+
+
+
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
+class ShowData extends StatefulWidget {
+  const ShowData({super.key});
+
+  @override
+  State<ShowData> createState() => _ShowDataState();
+}
+
+class _ShowDataState extends State<ShowData> {
+  @override
+  Widget build(BuildContext context) {
+    const border = OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Color.fromRGBO(225, 225, 225, 1),
+      ),
+      borderRadius: BorderRadius.horizontal(left: Radius.circular(40)),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Admin Panel"),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: TextField(
+                decoration: InputDecoration(
+                    hintText: "Search",
+                    border: border,
+                    enabledBorder: border,
+                    focusedBorder: border,
+                    prefixIcon: Icon(Icons.search),
+                    suffixIcon: IconButton(
+                        onPressed: () {
+                          
+                        },
+                        icon: const Icon(
+                          Icons.arrow_drop_down_circle_outlined,
+                          size: 25,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                        ),
+                        
+                        ),
+                        ),
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("directory-users")
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.active) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      return ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            Map<String, dynamic> userMap =
+                                snapshot.data!.docs[index].data();
+                            return Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Card(
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      leading: CircleAvatar(
+                                        radius: 40,
+                                        backgroundImage: NetworkImage(
+                                            userMap["hProfilePic"]),
+                                      ),
+                                      title: Text(
+                                        userMap["hName"] +
+                                            "(${userMap['hOccupation']})",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                "Current Address = ${userMap['hCurrentAddress']}"),
+                                            Text(
+                                                "Contact Number = ${userMap['hContact']}"),
+                                          ]),
+                                    ),
+                                    ListTile(
+                                      leading: CircleAvatar(
+                                        radius: 30,
+                                        backgroundImage: NetworkImage(
+                                            userMap["wProfilePic"]),
+                                      ),
+                                      title: Text(
+                                        userMap["wName"] +
+                                            "(${userMap['wOccupation']})",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                "Spouse Current Address = ${userMap['wCurrentAddress']}"),
+                                            Text(
+                                                "Spouse Contact Number = ${userMap['wContact']}"),
+                                          ]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          });
+                    } else {
+                      return const Text("No data");
+                    }
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+import 'package:flutter/material.dart';
+
+class ShowData extends StatefulWidget {
+  const ShowData({super.key});
+
+  @override
+  State<ShowData> createState() => _ShowDataState();
+}
+
+class _ShowDataState extends State<ShowData> {
+  // ... Existing code ...
+
+  @override
+  Widget build(BuildContext context) {
+    // ... Existing code ...
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("User Directory"),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ... Existing code ...
+
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("directory-users")
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.active) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: resultList.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                // Navigate to UserDetailsPage when a card is tapped
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserDetailsPage(
+                                      userData: resultList[index],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    children: [
+                                      // ... Existing code ...
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      return const Text("No data");
+                    }
+                  } else {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+import 'package:flutter/material.dart';
+
+class UserDetailsPage extends StatelessWidget {
+  final Map<String, dynamic> userData;
+
+  UserDetailsPage({required this.userData});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("User Details"),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "HOUSEHOLDER INFO...",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            ListTile(
+              leading: CircleAvatar(
+                radius: 40,
+                backgroundImage: NetworkImage(userData["hProfilePic"]),
+              ),
+              title: Text(
+                "${userData["hName"]} ${userData["hGotra"]} (${userData['hOccupation']})",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Current Address = ${userData['hCurrentAddress']}"),
+                  Text("Contact Number = ${userData['hContact']}"),
+                ],
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              "SPOUSE INFO...",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            ListTile(
+              leading: CircleAvatar(
+                radius: 30,
+                backgroundImage: NetworkImage(userData["wProfilePic"]),
+              ),
+              title: Text(
+                "${userData["wName"]} ${userData["wGotra"]} (${userData['wOccupation']})",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Spouse Current Address = ${userData['wCurrentAddress']}"),
+                  Text("Spouse Contact Number = ${userData['wContact']}"),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:uuid/uuid.dart';
+
+class EditDetails extends StatefulWidget {
+  final Map<String, dynamic> userData;
+  final String userId;
+
+  const EditDetails({Key? key, required this.userData, required this.userId}) : super(key: key);
+
+  @override
+  State<EditDetails> createState() => _EditDetailsState();
+}
+
+class _EditDetailsState extends State<EditDetails> {
+  // ... other controllers and variables
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Edit Details"),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        final hSelectedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+                        if (hSelectedImage != null) {
+                          File editedFile = File(hSelectedImage.path);
+                          setState(() {
+                            headEditedProfilePic = editedFile;
+                          });
+                          print("Image selected");
+                        } else {
+                          print("No image selected");
+                        }
+                      },
+                      child: Container(
+                        height: 150,
+                        width: 150,
+                        child: headEditedProfilePic == null
+                            ? Image.network(widget.userData['hProfilePic'])
+                            : Image.file(headEditedProfilePic!),
+                      ),
+                    ),
+                    // ... other widgets
+                    _buildUpdateNowButton(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<String> uploadFile(File file, String folder) async {
+    try {
+      final ref = FirebaseStorage.instance.ref().child("Profilepictures").child(folder).child(Uuid().v1());
+      final uploadTask = ref.putFile(file);
+      final taskSnapshot = await uploadTask;
+      return await taskSnapshot.ref.getDownloadURL();
+    } catch (error) {
+      print("Error uploading file: $error");
+      throw error;
+    }
+  }
+
+  Future<void> _uploadAndSaveImage() async {
+    if (headEditedProfilePic != null) {
+      final downloadUrl = await uploadFile(headEditedProfilePic!, "headProfilePictures");
+      setState(() {
+        editedData['hProfilePic'] = downloadUrl;
+      });
+    }
+  }
+
+  ElevatedButton _buildUpdateNowButton() {
+    return ElevatedButton(
+      onPressed: () async {
+        await _uploadAndSaveImage();
+        // Your existing code...
+      },
+      style: ElevatedButton.styleFrom(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
+        foregroundColor: Colors.white,
+      ),
+      child: const Text(
+        "Update",
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}

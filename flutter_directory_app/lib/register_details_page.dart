@@ -10,13 +10,18 @@ import 'package:uuid/uuid.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
+  
 
   @override
   State<RegistrationPage> createState() => _RegistrationPageState();
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  final bool validate = false;
+  final snackBar = SnackBar(
+  content: Text('Oops! Something went wrong'),
+);
+  bool validate = false;
+  bool _loading = false;
 
   final TextEditingController headNameController = TextEditingController();
 
@@ -51,6 +56,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   File? headProfilePic;
   File? wifeProfilePic;
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,18 +77,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ],
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ShowData()),
-              );
-            },
-            icon: const Icon(Icons.exit_to_app),
-            color: Colors.black,
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -96,7 +90,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   File convertedFile = File(hSelectedImage.path);
                   setState(() {
                     headProfilePic = convertedFile;
-                    print("setstate triggered");
                   });
                   print("Image selected");
                 } else {
@@ -155,37 +148,80 @@ class _RegistrationPageState extends State<RegistrationPage> {
             _buildPersonForm("Spouse"),
             SizedBox(height: 10),
             _buildRegisterNowButton(),
+            _viewDetails(),
           ],
         ),
       ),
     );
   }
 
-  _buildRegisterNowButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
-      child: ElevatedButton(
-        onPressed: () {
-          saveUser();
-          // submitForm();
-        },
-        style: ElevatedButton.styleFrom(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-          ),
-          backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
-          foregroundColor: Colors.white,
-        ),
-        child: const Text(
-          "Register Now",
+  _viewDetails(){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          "Click here to",
           style: TextStyle(
-            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-      ),
+        TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ShowData()),
+                );
+              },
+              child: const Text(
+                "View Directory!",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 53, 51, 51),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ),
+      ],
     );
   }
+
+  _buildRegisterNowButton() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+    child: ElevatedButton(
+      onPressed: () {
+        setState(() {
+          validate = true; // Set validation to true when button is pressed
+        });
+        _onLoading();
+        if (_validateForm()) {
+          saveUser();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please fill in all required fields.'),
+            ),
+          );
+          _hideLoading();
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10)),                                                                                                                                                                              
+        ),
+        backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
+        foregroundColor: Colors.white,
+      ),
+      child: const Text(
+        "Register Now",
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,                                                                 
+        ),
+      ),
+    ),
+  );
+}
 
   _buildPersonForm(String title) {
     return Card(
@@ -245,74 +281,86 @@ class _RegistrationPageState extends State<RegistrationPage> {
       controller: controller,
       decoration: InputDecoration(
         hintText: label,
-        // errorText: validate && controller.text.isEmpty ? 'Required' : null,
+        errorText: validate && controller.text.isEmpty ? 'Required' : null,
+        errorStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600
+        )
       ),
     );
   }
 
-  Future<void> saveUser() async {
-    try {
-      String hName = headNameController.text.trim();
-      String hGotra = headGotraController.text.trim();
-      String hOccupation = headOccupationController.text.trim();
-      String hContactString = headContactController.text.trim();
-      String hBirthplace = headBirthplaceController.text.trim();
-      String hCurrentAddress = headCurrentAddressController.text.trim();
-      String wName = wifeNameController.text.trim();
-      String wGotra = wifeGotraController.text.trim();
-      String wOccupation = wifeOccupationController.text.trim();
-      String wContactString = wifeContactController.text.trim();
-      String wBirthplace = wifeBirthplaceController.text.trim();
-      String wCurrentAddress = wifeCurrentAddressController.text.trim();
+Future<void> saveUser() async {
+  try {
+    String hName = headNameController.text.trim();
+    String hGotra = headGotraController.text.trim();
+    String hOccupation = headOccupationController.text.trim();
+    String hContactString = headContactController.text.trim();
+    String hBirthplace = headBirthplaceController.text.trim();
+    String hCurrentAddress = headCurrentAddressController.text.trim();
+    String wName = wifeNameController.text.trim();
+    String wGotra = wifeGotraController.text.trim();
+    String wOccupation = wifeOccupationController.text.trim();
+    String wContactString = wifeContactController.text.trim();
+    String wBirthplace = wifeBirthplaceController.text.trim();
+    String wCurrentAddress = wifeCurrentAddressController.text.trim();
 
-      if (hName.isNotEmpty &&
-          hGotra.isNotEmpty &&
-          wName.isNotEmpty &&
-          headProfilePic != null &&
-          wifeProfilePic != null) {
-        final headDownloadUrl =
-            await uploadFile(headProfilePic!, "headProfilePictures");
-        print("HEAD PROFILE PICTURE: $headDownloadUrl");
-        print("wifeProfilePic: $wifeProfilePic");
-        final wifeDownloadUrl =
-            await uploadFile(wifeProfilePic!, "wifeProfilePictures");
-        print("WIFE PROFILE PICTURE: $wifeDownloadUrl");
+    if (hName.isNotEmpty &&
+        hGotra.isNotEmpty &&
+        wName.isNotEmpty &&
+        headProfilePic != null &&
+        wifeProfilePic != null) {
+      final headDownloadUrl =
+          await uploadFile(headProfilePic!, "headProfilePictures");
+      print("HEAD PROFILE PICTURE: $headDownloadUrl");
+      print("wifeProfilePic: $wifeProfilePic");
+      final wifeDownloadUrl =
+          await uploadFile(wifeProfilePic!, "wifeProfilePictures");
+      print("WIFE PROFILE PICTURE: $wifeDownloadUrl");
 
-        Map<String, dynamic> userData = {
-          "hProfilePic": headDownloadUrl,
-          "hName": hName,
-          "hGotra": hGotra,
-          "hOccupation": hOccupation,
-          "hContact": hContactString,
-          "hBirthPlace": hBirthplace,
-          "hCurrentAddress": hCurrentAddress,
-          "wProfilePic": wifeDownloadUrl,
-          "wName": wName,
-          "wGotra": wGotra,
-          "wOccupation": wOccupation,
-          "wContact": wContactString,
-          "wBirthPlace": wBirthplace,
-          "wCurrentAddress": wCurrentAddress,
-        };
+      Map<String, dynamic> userData = {
+        "hProfilePic": headDownloadUrl,
+        "hName": hName,
+        "hGotra": hGotra,
+        "hOccupation": hOccupation,
+        "hContact": hContactString,
+        "hBirthPlace": hBirthplace,
+        "hCurrentAddress": hCurrentAddress,
+        "wProfilePic": wifeDownloadUrl,
+        "wName": wName,
+        "wGotra": wGotra,
+        "wOccupation": wOccupation,
+        "wContact": wContactString,
+        "wBirthPlace": wBirthplace,
+        "wCurrentAddress": wCurrentAddress,
+      };
 
-        await FirebaseFirestore.instance
-            .collection("directory-users")
-            .add(userData);
+      await FirebaseFirestore.instance
+          .collection("directory-users")
+          .add(userData);
 
-        print("User Created!");
-        submitForm();
-      } else {
-        print("User not created. Please fill in all required fields.");
-      }
-    } catch (error) {
-      print("Error saving user: $error");
-    } finally {
-      setState(() {
-        headProfilePic = null;
-        wifeProfilePic = null;
-      });
+      print("User Created!");
+      submitForm();
     }
+  } catch (error) {
+    print("Error saving user: $error");
+    _hideLoading();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Oops! Something went wrong'),
+      ),
+    );
+  } finally {
+    _hideLoading(); // Hide loading indicator whether there's an error or not
+    setState(() {
+      _loading = false;
+      headProfilePic = null;
+      wifeProfilePic = null;
+    });
+    Navigator.pop(context); // Close the loading dialog
   }
+}
+
 
   Future<String> uploadFile(File file, String folder) async {
     try {
@@ -331,7 +379,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void submitForm() {
+
     setState(() {
+      _loading = false;
       clearRegScreen();
     });
 
@@ -362,13 +412,50 @@ class _RegistrationPageState extends State<RegistrationPage> {
     headContactController.clear();
     headBirthplaceController.clear();
     headCurrentAddressController.clear();
-    // headProfilePic = null;
     wifeNameController.clear();
     wifeGotraController.clear();
     wifeOccupationController.clear();
     wifeContactController.clear();
     wifeBirthplaceController.clear();
     wifeCurrentAddressController.clear();
-    // wifeProfilePic = null;
   }
+
+
+void _onLoading() {
+  setState(() {
+    _loading = true;
+  });
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const Dialog(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 10),
+            Text("Loading, Please Wait..."),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _hideLoading() {
+  Navigator.pop(context); // Close the loading dialog
+  setState(() {
+    _loading = false;
+  });
+}
+
+_validateForm() {
+  // Check if required fields are not empty
+  return headNameController.text.isNotEmpty &&
+      headGotraController.text.isNotEmpty &&
+      headContactController.text.isNotEmpty &&
+      wifeNameController.text.isNotEmpty;
+}
+
 }

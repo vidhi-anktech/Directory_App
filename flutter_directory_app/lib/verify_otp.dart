@@ -1,69 +1,75 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/register_details_page.dart';
-
+import 'package:flutter_directory_app/show_data.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String verificationId;
-  const VerifyOtpScreen({ Key? key, required this.verificationId}) : super(key: key);
+  const VerifyOtpScreen({Key? key, required this.verificationId})
+      : super(key: key);
 
   @override
   State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
 }
 
 class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
-
   TextEditingController otpController = TextEditingController();
 
- void verifyOTP() async{
-  String otp = otpController.text.trim();
+  void verifyOTP() async {
+    String otp = otpController.text.trim();
 
-  PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.verificationId, smsCode: otp);
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: widget.verificationId, smsCode: otp);
 
-  try{
-    UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-    if(userCredential.user != null){
-    Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      if (userCredential.user != null) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => ShowData()));
+      }
+    } on FirebaseAuthException catch (ex) {
+      print(ex.code.toString());
     }
-  }on FirebaseAuthException catch(ex){
-    print(ex.code.toString());
   }
- }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: FittedBox(
+          fit: BoxFit.contain,
+          child: Text(
+            "Please Enter OTP",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 25,
+              letterSpacing: 1.5,
+              shadows: [
+                Shadow(
+                  color: Theme.of(context).colorScheme.primary,
+                  blurRadius: 4.0,
+                  offset: const Offset(-2.0, 2.0),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Please Enter OTP",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
-                      letterSpacing: 1.5,
-                      shadows: [
-                        Shadow(
-                          color: Theme.of(context).colorScheme.primary,
-                          blurRadius: 4.0,
-                          offset: const Offset(-2.0, 2.0),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
+              SizedBox(
+                  height: 150,
+                  width: 150,
+                  child: Image.asset('assets/images/logo.jpeg')),
+              const SizedBox(height: 20),
               TextField(
                 controller: otpController,
                 maxLength: 6,
@@ -82,7 +88,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                 verifyOTP();
+                  verifyOTP();
                 },
                 style: ElevatedButton.styleFrom(
                   shape: const RoundedRectangleBorder(
@@ -100,14 +106,15 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              _registerNow(),
+              // _registerNow(),
             ],
           ),
         ),
       ),
     );
   }
-   Widget _registerNow() {
+
+  Widget _registerNow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

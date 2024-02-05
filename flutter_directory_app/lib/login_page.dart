@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/admin-login-page.dart';
 import 'package:flutter_directory_app/register_details_page.dart';
 import 'package:flutter_directory_app/verify_otp.dart';
 
@@ -57,15 +58,8 @@ void _sendOTP() async{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 30),
-             
-                  FittedBox(
+      appBar: AppBar(
+        title:  FittedBox(
                     fit: BoxFit.contain,
                     child: Text(
                       "Verify Your Mobile Number",
@@ -83,8 +77,20 @@ void _sendOTP() async{
                       ),
                     ),
                   ),
-                
-              const SizedBox(height: 50),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+                   const SizedBox(height: 20),
+                SizedBox(
+                        height: 150,
+                        width: 150,
+                        child: Image.asset('assets/images/logo.jpeg')
+                      ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _phoneController,
                 focusNode: _phoneFocusNode,
@@ -101,7 +107,7 @@ void _sendOTP() async{
                   fillColor:
                       const Color.fromARGB(255, 87, 88, 92).withOpacity(0.1),
                   filled: true,
-                  prefixIcon: const Icon(Icons.person),
+                  prefixIcon: const Icon(Icons.call),
                 ),
                 validator: _validatePhoneNumber,
               ),
@@ -130,7 +136,7 @@ void _sendOTP() async{
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(
-                  "Verify",
+                  "Send OTP",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -138,7 +144,8 @@ void _sendOTP() async{
                 ),
               ),
               const SizedBox(height: 10),
-              _registerNow(),
+              // _registerNow(),
+              // _adminLogin(),
             ],
           ),
         ),
@@ -165,6 +172,35 @@ void _sendOTP() async{
           },
           child: const Text(
             "REGISTER NOW !",
+            style: TextStyle(
+              color: Color.fromARGB(255, 53, 51, 51),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+  Widget _adminLogin() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          "Are you Admin?",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) =>  const AdminLoginPage()),
+            );
+          },
+          child: const Text(
+            "Login Now!",
             style: TextStyle(
               color: Color.fromARGB(255, 53, 51, 51),
               fontWeight: FontWeight.bold,
