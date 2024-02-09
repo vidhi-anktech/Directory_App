@@ -126,10 +126,10 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         ),
         TextButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RegistrationPage()),
-            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => RegistrationPage()),
+            // );
           },
           child: const Text(
             "REGISTER NOW !",
@@ -156,8 +156,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           .forEach((element) {
         if (element.data()?['adminEmail'] == adminEmail &&
             element.data()?['adminPassword'] == adminPass) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const ShowData()));
+          // Navigator.push(context,
+          //     MaterialPageRoute(builder: (context) => const ShowData()));
         }
       });
     }

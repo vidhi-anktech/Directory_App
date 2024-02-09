@@ -6,10 +6,12 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/show_data.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class RegistrationPage extends StatefulWidget {
-  const RegistrationPage({super.key});
+  String phoneNo;
+   RegistrationPage({super.key, required this.phoneNo});
   
 
   @override
@@ -60,21 +62,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar:AppBar(
+        backgroundColor: const Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
         centerTitle: true,
-        title: Text(
-          'Family Registration',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-            letterSpacing: 1.5,
-            shadows: [
-              Shadow(
-                color: Theme.of(context).colorScheme.primary,
-                blurRadius: 4.0,
-                offset: const Offset(-2.0, 2.0),
-              ),
-            ],
+        titleSpacing: 0,
+        title: const FittedBox(
+          fit: BoxFit.contain,
+          child: Text(
+            "Family Registration",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -167,10 +170,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ),
         TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ShowData()),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => const ShowData()),
+                // );
               },
               child: const Text(
                 "View Directory!",
@@ -305,6 +308,9 @@ Future<void> saveUser() async {
     String wBirthplace = wifeBirthplaceController.text.trim();
     String wCurrentAddress = wifeCurrentAddressController.text.trim();
 
+    String hContact = "+91$hContactString";
+    String wContact = "+91$wContactString";
+
     if (hName.isNotEmpty &&
         hGotra.isNotEmpty &&
         wName.isNotEmpty &&
@@ -312,27 +318,25 @@ Future<void> saveUser() async {
         wifeProfilePic != null) {
       final headDownloadUrl =
           await uploadFile(headProfilePic!, "headProfilePictures");
-      print("HEAD PROFILE PICTURE: $headDownloadUrl");
-      print("wifeProfilePic: $wifeProfilePic");
       final wifeDownloadUrl =
           await uploadFile(wifeProfilePic!, "wifeProfilePictures");
-      print("WIFE PROFILE PICTURE: $wifeDownloadUrl");
 
       Map<String, dynamic> userData = {
         "hProfilePic": headDownloadUrl,
         "hName": hName,
         "hGotra": hGotra,
         "hOccupation": hOccupation,
-        "hContact": hContactString,
+        "hContact": hContact,
         "hBirthPlace": hBirthplace,
         "hCurrentAddress": hCurrentAddress,
         "wProfilePic": wifeDownloadUrl,
         "wName": wName,
         "wGotra": wGotra,
         "wOccupation": wOccupation,
-        "wContact": wContactString,
+        "wContact": wContact,
         "wBirthPlace": wBirthplace,
         "wCurrentAddress": wCurrentAddress,
+        "addedBy" : widget.phoneNo,
       };
 
       await FirebaseFirestore.instance
@@ -340,6 +344,7 @@ Future<void> saveUser() async {
           .add(userData);
 
       print("User Created!");
+      print("ADDED BY : ${widget.phoneNo}");
       submitForm();
     }
   } catch (error) {
@@ -429,16 +434,19 @@ void _onLoading() {
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
-      return const Dialog(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 10),
-            Text("Loading, Please Wait..."),
-          ],
-        ),
-      );
+      return 
+        SizedBox(
+          height:50,
+          width:50,
+          child: Center(
+          child: LoadingAnimationWidget.twistingDots(
+            leftDotColor: const Color.fromRGBO(5, 111, 146, 1),
+            rightDotColor: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
+                ),
+        );
+    
     },
   );
 }

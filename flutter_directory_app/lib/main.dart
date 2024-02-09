@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       routes: {
         
         '/second': (context) => const LoginPage(),
-        '/third': (context) => const RegistrationPage(),
+        // '/third': (context) => const RegistrationPage(),
       },
       theme: ThemeData(
         inputDecorationTheme: const InputDecorationTheme(

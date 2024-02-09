@@ -5,7 +5,8 @@ import 'package:flutter_directory_app/register_details_page.dart';
 import 'package:flutter_directory_app/user-details-page.dart';
 
 class ShowData extends StatefulWidget {
-  const ShowData({super.key});
+  String phoneNo;
+  ShowData({super.key, required this.phoneNo});
 
   @override
   State<ShowData> createState() => _ShowDataState();
@@ -42,13 +43,17 @@ class _ShowDataState extends State<ShowData> {
             clientSnapShot['hOccupation'].toString().toLowerCase();
         var wOccupation =
             clientSnapShot['wOccupation'].toString().toLowerCase();
+        var hGotra = clientSnapShot['hGotra'].toString().toLowerCase();
+        var wGotra = clientSnapShot['wGotra'].toString().toLowerCase();
 
         if (hName.contains(_searchController.text.toLowerCase()) ||
             wName.contains(_searchController.text.toLowerCase()) ||
             hCurrentAddress.contains(_searchController.text.toLowerCase()) ||
             wCurrentAddress.contains(_searchController.text.toLowerCase()) ||
             hOccupation.contains(_searchController.text.toLowerCase()) ||
-            wOccupation.contains(_searchController.text.toLowerCase())) {
+            wOccupation.contains(_searchController.text.toLowerCase()) ||
+            hGotra.contains(_searchController.text.toLowerCase()) ||
+            wGotra.contains(_searchController.text.toLowerCase())) {
           showResults.add(clientSnapShot);
         }
       }
@@ -65,6 +70,7 @@ class _ShowDataState extends State<ShowData> {
         .collection("directory-users")
         .orderBy("hName")
         .get();
+
 
     setState(() {
       _allResults = data.docs;
@@ -87,33 +93,43 @@ class _ShowDataState extends State<ShowData> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+        "Phone Number That User Entererd at show data page: ${widget.phoneNo}");
     const border = OutlineInputBorder(
-      borderSide: BorderSide(
-        color: Color.fromRGBO(225, 225, 225, 1),
-      ),
-      borderRadius: BorderRadius.horizontal(left: Radius.circular(40)),
-    );
+        borderSide: BorderSide(
+          color: Color.fromRGBO(225, 225, 225, 1),
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(20)));
     return Scaffold(
       appBar: AppBar(
-        title: const Text("User Directory"),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const RegistrationPage()));
-              },
-              icon: Icon(Icons.add_box_rounded),
-              iconSize: 40,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          )
-        ],
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+        title: const Text(
+          "User Directory",
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => RegistrationPage(
+                        phoneNo: widget.phoneNo,
+                      )));
+        },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 30,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -122,6 +138,7 @@ class _ShowDataState extends State<ShowData> {
               child: TextField(
                 controller: _searchController,
                 decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
                   hintText: "Search",
                   border: border,
                   enabledBorder: border,
@@ -139,14 +156,44 @@ class _ShowDataState extends State<ShowData> {
                   if (snapshot.connectionState == ConnectionState.active) {
                     if (snapshot.hasData && snapshot.data != null) {
                       return ListView.builder(
-                          shrinkWrap: true,
                           itemCount: resultList.length,
                           itemBuilder: (context, index) {
                             var docId = resultList[index].id;
-                            print(
-                                "LET CHECK ${resultList[index]['hProfilePic']}");
+                          
+                            editIconButton() {
+                              if (widget.phoneNo ==
+                                      resultList[index]['addedBy'] ||
+                                  widget.phoneNo ==
+                                      resultList[index]['hContact'] ||
+                                  widget.phoneNo ==
+                                      resultList[index]['wContact']) {
+                                return IconButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => EditDetails(
+                                            userData: resultList[index].data()
+                                                as Map<String, dynamic>,
+                                            userId: docId,
+                                            phoneNo: widget.phoneNo,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Color.fromRGBO(5, 111, 146, 1),
+                                    ));
+                              }
+                              else{
+                                return Container();
+                              }
+                            }
+
                             return Padding(
-                              padding: const EdgeInsets.all(10.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 5),
                               child: GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -161,7 +208,7 @@ class _ShowDataState extends State<ShowData> {
                                 },
                                 child: Card(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.all(5.0),
                                     child: Column(
                                       children: [
                                         const SizedBox(
@@ -178,29 +225,7 @@ class _ShowDataState extends State<ShowData> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                              IconButton(
-                                                  onPressed: () {
-                                                    // Navigator.push(
-                                                    //   context,
-                                                    //   MaterialPageRoute(
-                                                    //     builder: (context) =>
-                                                    //         EditDetails(
-                                                    //       userData:
-                                                    //           resultList[index]
-                                                    //                   .data()
-                                                    //               as Map<String,
-                                                    //                   dynamic>,
-                                                    //       userId: docId,
-                                                    //     ),
-                                                    //   ),
-                                                    // );
-                                                  },
-                                                  icon: const Icon(
-                                                    Icons.edit,
-                                                    color: Color.fromRGBO(
-                                                        5, 111, 146, 1),
-                                                  )),
-                                      
+                                            editIconButton(),
                                           ],
                                         ),
                                         ListTile(
@@ -209,24 +234,45 @@ class _ShowDataState extends State<ShowData> {
                                             backgroundImage: NetworkImage(
                                               resultList[index]
                                                       ["hProfilePic"] ??
-                                                  '', // Check for null
+                                                  '', 
                                             ),
                                           ),
                                           title: Text(
                                             resultList[index]["hName"] +
                                                 " " +
                                                 resultList[index]["hGotra"] +
-                                                " " +
-                                                "(${resultList[index]['hOccupation']})",
+                                                " ",
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold),
                                           ),
-                                          subtitle: Row(
+                                          subtitle: Column(
                                             children: [
-                                              const Icon(Icons.phone, size: 18),
-                                              const SizedBox(width: 5),
-                                              Text(
-                                                  "+91 ${resultList[index]['hContact']}"),
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.work,
+                                                    size: 15,
+                                                    color: Color.fromRGBO(
+                                                        5, 111, 146, 1),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                      "${resultList[index]['hOccupation']}"),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.phone,
+                                                    size: 18,
+                                                    color: Color.fromRGBO(
+                                                        5, 111, 146, 1),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                      "${resultList[index]['hContact']}"),
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -246,28 +292,49 @@ class _ShowDataState extends State<ShowData> {
                                         ),
                                         ListTile(
                                           leading: CircleAvatar(
-                                            radius: 30,
+                                            radius: 40,
                                             backgroundImage: NetworkImage(
                                               resultList[index]
                                                       ["wProfilePic"] ??
-                                                  '', // Check for null
+                                                  '', 
                                             ),
                                           ),
                                           title: Text(
                                             resultList[index]["wName"] +
                                                 " " +
                                                 resultList[index]["wGotra"] +
-                                                " " +
-                                                "(${resultList[index]['wOccupation']})",
+                                                " ",
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold),
                                           ),
-                                          subtitle: Row(
+                                          subtitle: Column(
                                             children: [
-                                              const Icon(Icons.phone, size: 18),
-                                              const SizedBox(width: 5),
-                                              Text(
-                                                  "+91 ${resultList[index]['hContact']}"),
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.work,
+                                                    size: 15,
+                                                    color: Color.fromRGBO(
+                                                        5, 111, 146, 1),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                      "${resultList[index]['wOccupation']}"),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.phone,
+                                                    size: 18,
+                                                    color: Color.fromRGBO(
+                                                        5, 111, 146, 1),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                      "${resultList[index]['wContact']}"),
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),
