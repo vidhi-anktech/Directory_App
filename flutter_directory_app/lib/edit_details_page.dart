@@ -3,28 +3,38 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/main.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-class EditDetails extends StatefulWidget {
+class EditDetails extends ConsumerStatefulWidget {
   final Map<String, dynamic> userData;
   final String userId;
-  String phoneNo;
-   EditDetails({super.key, required this.userData, required this.userId, required this.phoneNo});
+  // String phoneNo;
+  EditDetails(
+      {super.key,
+      required this.userData,
+      required this.userId,
+      // required this.phoneNo
+      });
 
   @override
-  State<EditDetails> createState() => _EditDetailsState();
+  ConsumerState<EditDetails> createState() => _EditDetailsState();
 }
 
-class _EditDetailsState extends State<EditDetails> {
+class _EditDetailsState extends ConsumerState<EditDetails> {
   final hNameEditController = TextEditingController();
+  final hGotraEditController = TextEditingController();
   final hOccupationEditController = TextEditingController();
   final hAddressEditController = TextEditingController();
   final hContactEditController = TextEditingController();
   final hBirthPlaceEditController = TextEditingController();
   final wNameEditController = TextEditingController();
+  final wGotraEditController = TextEditingController();
   final wOccupationEditController = TextEditingController();
   final wAddressEditController = TextEditingController();
   final wContactEditController = TextEditingController();
@@ -37,18 +47,25 @@ class _EditDetailsState extends State<EditDetails> {
   @override
   Widget build(BuildContext context) {
     // print("LET CHECKKKK ${widget.userData['hProfilePic']}");
-    print("Phone Number That User Entererd at edit page: ${widget.phoneNo}");
+    // print("Phone Number That User Entererd at edit page: $");
+     hello() async {
+      var sharedPref = await SharedPreferences.getInstance();
+      var checkNum = sharedPref.getString(MyAppState.PHONENUM);
+      print("SHARED PREFERENCE CALLED AT BUILD CONTEXT OF EDIT PAGE $checkNum");
+    }
+
+    hello();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Edit Details"),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
-        progressIndicator:LoadingAnimationWidget.twistingDots(
-           leftDotColor: const Color.fromRGBO(5, 111, 146, 1),
-            rightDotColor: Theme.of(context).colorScheme.primary,
-            size: 40,
-        ), 
+        progressIndicator: LoadingAnimationWidget.twistingDots(
+          leftDotColor: const Color.fromRGBO(5, 111, 146, 1),
+          rightDotColor: Theme.of(context).colorScheme.primary,
+          size: 40,
+        ),
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
@@ -87,6 +104,8 @@ class _EditDetailsState extends State<EditDetails> {
                             children: [
                               _buildTextField(
                                   "Name", hNameEditController, 'hName'),
+                              _buildTextField(
+                                  "Gotra", hGotraEditController, 'hGotra'),
                               _buildTextField("Occupation",
                                   hOccupationEditController, 'hOccupation'),
                               _buildTextField("Current Address",
@@ -128,6 +147,8 @@ class _EditDetailsState extends State<EditDetails> {
                             children: [
                               _buildTextField(
                                   "Name", wNameEditController, 'wName'),
+                                  _buildTextField(
+                                  "Gotra", wGotraEditController, 'wGotra'),
                               _buildTextField("Occupation",
                                   wOccupationEditController, 'wOccupation'),
                               _buildTextField("Current Address",
@@ -191,8 +212,7 @@ class _EditDetailsState extends State<EditDetails> {
       });
       print("EDITED PROFILE PIC URL ${editedData['hProfilePic']}");
       print("WIFE EDITED PROFILE PIC URL ${editedData['wProfilePic']}");
-    }
-    else{
+    } else {
       print("YE TOH NULL AGYA");
     }
   }
@@ -217,14 +237,13 @@ class _EditDetailsState extends State<EditDetails> {
           'wBirthPlace': wBirthPlaceEditController.text.trim(),
         };
 
-         if (editedData['hProfilePic'] != null) {
-        editedData['hProfilePic'] = editedData['hProfilePic'];
-      }
-      if (editedData['wProfilePic'] != null) {
-        editedData['wProfilePic'] = editedData['wProfilePic'];
-      }
+        if (editedData['hProfilePic'] != null) {
+          editedData['hProfilePic'] = editedData['hProfilePic'];
+        }
+        if (editedData['wProfilePic'] != null) {
+          editedData['wProfilePic'] = editedData['wProfilePic'];
+        }
 
-      
         await FirebaseFirestore.instance
             .collection("directory-users")
             .doc(widget.userId)
@@ -251,6 +270,3 @@ class _EditDetailsState extends State<EditDetails> {
     );
   }
 }
-
-
-

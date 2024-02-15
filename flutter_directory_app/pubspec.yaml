@@ -49,6 +49,10 @@ dependencies:
   flutter_svg: ^2.0.9
   loading_animation_widget: ^1.2.0+4
   modal_progress_hud_nsn: ^0.5.1
+  shared_preferences: ^2.2.2
+  riverpod: ^2.5.0
+  hooks_riverpod: ^2.4.10
+  riverpod_lint: ^2.3.9
 
 dev_dependencies:
   flutter_test:

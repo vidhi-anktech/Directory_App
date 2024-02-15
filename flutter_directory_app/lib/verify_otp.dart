@@ -1,23 +1,29 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/main.dart';
 import 'package:flutter_directory_app/show_data.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class VerifyOtpScreen extends StatefulWidget {
+class VerifyOtpScreen extends ConsumerStatefulWidget {
   final String verificationId;
   final String phoneNo;
-  const VerifyOtpScreen(
-      {Key? key, required this.verificationId, required this.phoneNo})
-      : super(key: key);
+  const VerifyOtpScreen({
+    Key? key,
+    required this.verificationId,
+    required this.phoneNo
+  }) : super(key: key);
 
   @override
-  State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
+  ConsumerState<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
 }
 
-class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
+class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
+    with CodeAutoFill {
   TextEditingController otpController = TextEditingController();
   String _verificationId = "";
   int? _resendToken;
@@ -60,8 +66,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
           await FirebaseAuth.instance.signInWithCredential(credential);
       if (userCredential.user != null) {
         print('GREAT SUCCESS!');
+        var sharedPref = await SharedPreferences.getInstance();
+        sharedPref.setBool(MyAppState.KEYLOGIN, true);
+        sharedPref.setString(MyAppState.PHONENUM, widget.phoneNo);
+        var checkNum = sharedPref.getString(MyAppState.PHONENUM);
+        print("CHECKING NUMBER AT VERIFY OTP $checkNum");
+
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => ShowData(phoneNo: widget.phoneNo,)));
+            context, MaterialPageRoute(builder: (context) => ShowData()));
       }
     } on FirebaseAuthException catch (ex) {
       print(ex.code.toString());
@@ -85,7 +97,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
         codeAutoRetrievalTimeout: (verificationId) {
           verificationId = _verificationId;
         },
-        timeout: Duration(seconds: 30),
+        timeout: const Duration(seconds: 30),
       );
       print("_verificationId: $_verificationId");
 
@@ -102,7 +114,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       bottomNavigationBar: BottomAppBar(
+      bottomNavigationBar: BottomAppBar(
         height: 50,
         color: Colors.transparent,
         elevation: 0,
@@ -110,7 +122,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-             const Text(
+              const Text(
                 "अहिंसा परमो धर्मः",
                 style: TextStyle(
                   fontSize: 15,
@@ -118,8 +130,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
                   color: Colors.black,
                 ),
               ),
-              const SizedBox(width: 5,),
-                SvgPicture.string(
+              const SizedBox(
+                width: 5,
+              ),
+              SvgPicture.string(
                 svgString,
                 width: 15,
                 height: 15,
@@ -150,11 +164,11 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
-        progressIndicator:LoadingAnimationWidget.twistingDots(
-           leftDotColor: const Color.fromRGBO(5, 111, 146, 1),
-            rightDotColor: Theme.of(context).colorScheme.primary,
-            size: 40,
-        ), 
+        progressIndicator: LoadingAnimationWidget.twistingDots(
+          leftDotColor: const Color.fromRGBO(5, 111, 146, 1),
+          rightDotColor: Theme.of(context).colorScheme.primary,
+          size: 40,
+        ),
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -162,20 +176,21 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 10),
-                 Text("Please Enter Your OTP",
-                style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize:
-                                20,
-                                letterSpacing: 2.0,
-                            shadows: [
-                              Shadow(
-                                color: Theme.of(context).colorScheme.primary,
-                                blurRadius: 7.0, 
-                                offset: Offset(-2.0, 2.0),
-                                ),
-                            ],
-                              ),),
+                Text(
+                  "Please Enter Your OTP",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    letterSpacing: 2.0,
+                    shadows: [
+                      Shadow(
+                        color: Theme.of(context).colorScheme.primary,
+                        blurRadius: 7.0,
+                        offset: const Offset(-2.0, 2.0),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 30),
                 SizedBox(
                   height: 200,
@@ -230,33 +245,34 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> with CodeAutoFill {
                 ),
                 const SizedBox(height: 10),
                 TextButton(
-                  onPressed: () {
-                    resendOTP(widget.phoneNo);
+                  onPressed: () async {
+                    var sharedPref = await SharedPreferences.getInstance();
+                    var checkNum = sharedPref.getString(MyAppState.PHONENUM);
+                    resendOTP(checkNum!);
                   },
                   child: const Row(
                     children: [
-                    Expanded(
-                         child: Divider(
-                                  indent: 20.0,
-                                  endIndent: 10.0,
-                                  thickness: 1,
-                                ),
-                       ),
+                      Expanded(
+                        child: Divider(
+                          indent: 20.0,
+                          endIndent: 10.0,
+                          thickness: 1,
+                        ),
+                      ),
                       Text(
                         "Resend OTP",
                         style: TextStyle(
-                          color:   Color.fromRGBO(5, 111, 146, 1),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15
+                            color: Color.fromRGBO(5, 111, 146, 1),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          indent: 10.0,
+                          endIndent: 20.0,
+                          thickness: 1,
                         ),
                       ),
-                       Expanded(
-                            child: Divider(
-                                    indent: 10.0,
-                                    endIndent: 20.0,
-                                    thickness: 1,
-                            ),
-                        ),
                     ],
                   ),
                 ),

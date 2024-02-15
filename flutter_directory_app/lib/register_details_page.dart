@@ -4,21 +4,23 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_directory_app/show_data.dart';
+import 'package:flutter_directory_app/main.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-class RegistrationPage extends StatefulWidget {
+class RegistrationPage extends ConsumerStatefulWidget {
   String phoneNo;
    RegistrationPage({super.key, required this.phoneNo});
   
 
   @override
-  State<RegistrationPage> createState() => _RegistrationPageState();
+  ConsumerState<RegistrationPage> createState() => _RegistrationPageState();
 }
 
-class _RegistrationPageState extends State<RegistrationPage> {
+class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   final snackBar = SnackBar(
   content: Text('Oops! Something went wrong'),
 );
@@ -61,6 +63,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar:AppBar(
         backgroundColor: const Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
@@ -151,43 +154,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
             _buildPersonForm("Spouse"),
             SizedBox(height: 10),
             _buildRegisterNowButton(),
-            _viewDetails(),
           ],
         ),
       ),
     );
   }
 
-  _viewDetails(){
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          "Click here to",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        TextButton(
-              onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => const ShowData()),
-                // );
-              },
-              child: const Text(
-                "View Directory!",
-                style: TextStyle(
-                  color: Color.fromARGB(255, 53, 51, 51),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ),
-      ],
-    );
-  }
-
+  
   _buildRegisterNowButton() {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
@@ -294,6 +267,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
 Future<void> saveUser() async {
+   var sharedPref = await SharedPreferences.getInstance();
+   var showNum = sharedPref.getString(MyAppState.PHONENUM);
   try {
     String hName = headNameController.text.trim();
     String hGotra = headGotraController.text.trim();
@@ -336,7 +311,7 @@ Future<void> saveUser() async {
         "wContact": wContact,
         "wBirthPlace": wBirthplace,
         "wCurrentAddress": wCurrentAddress,
-        "addedBy" : widget.phoneNo,
+        "addedBy" : showNum,
       };
 
       await FirebaseFirestore.instance
@@ -344,7 +319,7 @@ Future<void> saveUser() async {
           .add(userData);
 
       print("User Created!");
-      print("ADDED BY : ${widget.phoneNo}");
+      print("ADDED BY : ${showNum}");
       submitForm();
     }
   } catch (error) {

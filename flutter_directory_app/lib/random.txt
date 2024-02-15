@@ -1,1535 +1,491 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
-
-// class ImagePickerWidget extends StatefulWidget {
-//   final File? image;
-//   final void Function(File?) onImageSelected;
-
-//   const ImagePickerWidget({
-//     Key? key,
-//     required this.image,
-//     required this.onImageSelected,
-//   }) : super(key: key);
-
-//   @override
-//   _ImagePickerWidgetState createState() => _ImagePickerWidgetState();
-// }
-
-// class _ImagePickerWidgetState extends State<ImagePickerWidget> {
-//   final _imagePicker = ImagePicker();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         widget.image != null
-//             ? Image.file(
-//                 widget.image!,
-//                 height: 100,
-//                 width: 100,
-//               )
-//             : const SizedBox(height: 8),
-//         Row(
-//           children: <Widget>[
-//             Expanded(
-//               child: TextField(
-//                 decoration: InputDecoration(
-//                   hintText: 'Upload colored photograph',
-//                   suffixIcon: IconButton(
-//                     icon: const Icon(Icons.camera_alt_rounded),
-//                     onPressed: () {
-//                       _captureImage(widget.onImageSelected);
-//                     },
-//                   ),
-//                 ),
-//               ),
-//             ),
-//             Container(
-//               decoration: BoxDecoration(
-//                 color: Colors.blue[800],
-//                 borderRadius: const BorderRadius.only(
-//                   topRight: Radius.circular(10),
-//                 ),
-//               ),
-//               child: IconButton(
-//                 icon: const Icon(
-//                   Icons.photo,
-//                   color: Colors.white,
-//                 ),
-//                 onPressed: () {
-//                   _pickImage(widget.onImageSelected);
-//                 },
-//               ),
-//             )
-//           ],
-//         ),
-//       ],
-//     );
-//   }
-
-//   Future<void> _pickImage(void Function(File?) onImageSelected) async {
-//     final pickedFile =
-//         await _imagePicker.pickImage(source: ImageSource.gallery);
-//     onImageSelected(File(pickedFile!.path));
-//   }
-  
-
-//   Future<void> _captureImage(void Function(File?) onImageSelected) async {
-//     final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
-//     onImageSelected(File(pickedFile!.path));
-//   }
-// }
-
-// class RegistrationPage extends StatefulWidget {
-//   const RegistrationPage({Key? key}) : super(key: key);
-
-//   @override
-//   State<RegistrationPage> createState() => _RegistrationPageState();
-// }
-
-// class _RegistrationPageState extends State<RegistrationPage> {
-//   bool _validate = false;
-//   // File? hProfilePic;
-//   final headNameController = TextEditingController();
-//   final headGotraController = TextEditingController();
-//   final headOccupationController = TextEditingController();
-//   final headContactController = TextEditingController();
-//   final headBirthplaceController = TextEditingController();
-//   final headCurrentAddressController = TextEditingController();
-//   File? headImage;
-
-//   final wifeNameController = TextEditingController();
-//   final wifeGotraController = TextEditingController();
-//   final wifeOccupationController = TextEditingController();
-//   final wifeContactController = TextEditingController();
-//   final wifeBirthplaceController = TextEditingController();
-//   final wifeCurrentAddressController = TextEditingController();
-//   // File? wifeImage;
-
-//   void clearRegScreen() {
-//     headNameController.clear();
-//     headGotraController.clear();
-//     headOccupationController.clear();
-//     headContactController.clear();
-//     headBirthplaceController.clear();
-//     headCurrentAddressController.clear();
-//     headImage = null;
-//     wifeNameController.clear();
-//     wifeGotraController.clear();
-//     wifeOccupationController.clear();
-//     wifeContactController.clear();
-//     wifeBirthplaceController.clear();
-//     wifeCurrentAddressController.clear();
-//     // wifeImage = null;
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         centerTitle: true,
-//         title: Text(
-//           'Family Registration',
-//           style: TextStyle(
-//             fontWeight: FontWeight.bold,
-//             fontSize: 25,
-//             letterSpacing: 1.5,
-//             shadows: [
-//               Shadow(
-//                 color: Theme.of(context).colorScheme.primary,
-//                 blurRadius: 4.0,
-//                 offset: const Offset(-2.0, 2.0),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: SingleChildScrollView(
-//           child: Column(
-//             children: [
-//               _buildPersonForm("Householder"),
-//               const SizedBox(height: 20),
-//               _buildPersonForm("Spouse"),
-//               const SizedBox(height: 20),
-//               ElevatedButton(
-//                 onPressed: (){
-//                   _submitForm();
-//                   // saveUser();
-//                 },
-//                 style: ElevatedButton.styleFrom(
-//                   shape: const RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.all(Radius.circular(10)),
-//                   ),
-//                   backgroundColor: const Color.fromARGB(255, 109, 158, 243),
-//                   foregroundColor: Colors.white,
-//                 ),
-//                 child: const Text(
-//                   "Register Now",
-//                   style: TextStyle(
-//                     fontSize: 20,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildPersonForm(String title) {
-//     return Card(
-//       elevation: 4.0,
-//       child: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               title,
-//               style: const TextStyle(
-//                 fontWeight: FontWeight.bold,
-//                 fontSize: 20,
-//               ),
-//             ),
-//             const SizedBox(height: 10),
-//             ImagePickerWidget(
-//               // image: title == "Householder" ? headImage : wifeImage,
-//               image: headImage,
-//               onImageSelected: (file) {
-//                 setState(() {
-//               //     if (title == "Householder") {
-//               //       headImage = file;
-//               //     } else {
-//               //       wifeImage = file;
-//               //     }
-//               //   });
-//               // },
-//               headImage =file;
-//                 });
-//               }
-//             ),
-//             _buildTextField(
-//                 '$title Name',
-//                 title == "Householder"
-//                     ? headNameController
-//                     : wifeNameController),
-//             _buildTextField(
-//                 '$title Gotra',
-//                 title == "Householder"
-//                     ? headGotraController
-//                     : wifeGotraController),
-//             _buildTextField(
-//                 '$title Occupation',
-//                 title == "Householder"
-//                     ? headOccupationController
-//                     : wifeOccupationController),
-//             _buildTextField(
-//                 '$title Contact',
-//                 title == "Householder"
-//                     ? headContactController
-//                     : wifeContactController),
-//             _buildTextField(
-//                 '$title Birthplace',
-//                 title == "Householder"
-//                     ? headBirthplaceController
-//                     : wifeBirthplaceController),
-//             _buildTextField(
-//                 '$title CurrentAddress',
-//                 title == "Householder"
-//                     ? headCurrentAddressController
-//                     : wifeCurrentAddressController),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildTextField(String label, TextEditingController controller) {
-//     return TextField(
-//       cursorColor: Colors.black,
-//       controller: controller,
-//       decoration: InputDecoration(
-//         hintText: label,
-//         errorText: _validate && controller.text.isEmpty ? 'Required' : null,
-//       ),
-//     );
-//   }
-
-//   void _submitForm() {
-//     setState(() {
-//       _validate = true;
-//       clearRegScreen();
-//     });
-
-//     if (_validateForm()) {
-//       final headData = {
-//         'Name': headNameController.text,
-//         'Gotra': headGotraController.text,
-//         'Occupation': headOccupationController.text,
-//         'Contact': headContactController.text,
-//         'Birthplace': headBirthplaceController.text,
-//         'CurrentAddress': headCurrentAddressController.text,
-//         'Photo': headImage?.path,
-//       };
-
-//       final wifeData = {
-//         'Name': wifeNameController.text,
-//         'Gotra': wifeGotraController.text,
-//         'Occupation': wifeOccupationController.text,
-//         'Contact': wifeContactController.text,
-//         'Birthplace': wifeBirthplaceController.text,
-//         'CurrentAddress': wifeCurrentAddressController.text,
-//         // 'Photo': wifeImage?.path,
-//         'Photo': headImage?.path,
-//       };
-
-//       print('Head of the Family: $headData');
-//       print('Wife: $wifeData');
-//     }
-//   }
-
-//   bool _validateForm() {
-//     return headNameController.text.isNotEmpty &&
-//         headGotraController.text.isNotEmpty &&
-//         headOccupationController.text.isNotEmpty &&
-//         headContactController.text.isNotEmpty &&
-//         headBirthplaceController.text.isNotEmpty &&
-//         headCurrentAddressController.text.isNotEmpty &&
-//         wifeNameController.text.isNotEmpty &&
-//         wifeGotraController.text.isNotEmpty &&
-//         wifeOccupationController.text.isNotEmpty &&
-//         wifeContactController.text.isNotEmpty &&
-//         wifeBirthplaceController.text.isNotEmpty &&
-//         wifeCurrentAddressController.text.isNotEmpty;
-//         //  &&
-//         // headImage != null ;
-//         // &&
-//         // wifeImage != null;
-//   }
-
-//    void saveUser() async {
- 
-//     String hName = headNameController.text.trim();
-//     String hGotra = headGotraController.text.trim();
-//     String hOccupation = headOccupationController.text.trim();
-//     String hContactString = headContactController.text.trim();
-//     String hBirthplace = headBirthplaceController.text.trim();
-//     String hCurrentAddress = headCurrentAddressController.text.trim();
-//     String wName = wifeNameController.text.trim();
-//     String wGotra = wifeGotraController.text.trim();
-//     String wOccupation = wifeOccupationController.text.trim();
-//     String wContactString = wifeContactController.text.trim();
-//     String wBirthplace = wifeBirthplaceController.text.trim();
-//     String wCurrentAddress = wifeCurrentAddressController.text.trim();
-
-//     if (hName != "" && hGotra != "" ) {
-//       UploadTask uploadTask = FirebaseStorage.instance
-//           .ref()
-//           .child("ProfilePictures")
-//           .child(Uuid().v1())
-//           .putFile(headImage!);
-
-//       StreamSubscription taskSubscription = uploadTask.snapshotEvents.listen(
-//         (snapshot) {
-//           double percentage =
-//               snapshot.bytesTransferred / snapshot.totalBytes * 100;
-//           print(percentage.toString());
-//         },
-//       );
-
-//       TaskSnapshot taskSnapshot = await uploadTask;
-
-//       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-
-//       taskSubscription.cancel();
-
-//       Map<String, dynamic> userData = {
-//         "hName": hName,
-//         "hGotra": hGotra,
-//         "hOccupation": hOccupation,
-//         "hContact": hContactString,
-//         "hBirthPlace": hBirthplace,
-//         "hCurrentAddress": hCurrentAddress,
-//         "headImage": downloadUrl,
-//         "wName": wName,
-//         "wGotra": wGotra,
-//         "wOccupation": wOccupation,
-//         "wContact": wContactString,
-//         "wBirthPlace": wBirthplace,
-//         "wCurrentAddress": wCurrentAddress,
-//       };
-
-//       await FirebaseFirestore.instance
-//           .collection("directory-users")
-//           .add(userData);
-
-//       print("User Created!");
-//     } else {
-//       print("User not created");
-//     }
-
-//     setState(() {
-//       headImage = null;
-//     });
-// }
-
-// }
-
-
-
-
-// class RegistrationPage extends StatefulWidget {
-//   const RegistrationPage({super.key});
-
-//   @override
-//   State<RegistrationPage> createState() => _RegistrationPageState();
-// }
-
-// class _RegistrationPageState extends State<RegistrationPage> {
-//   bool _validate = false;
-
-// final heheController = TextEditingController();
-//   final TextEditingController headNameController = TextEditingController();
-//   final TextEditingController headGotraController = TextEditingController();
-//   final TextEditingController headOccupationController =
-//       TextEditingController();
-//   final TextEditingController headContactController = TextEditingController();
-//   final TextEditingController headBirthplaceController =
-//       TextEditingController();
-//   final TextEditingController headCurrentAddressController =
-//       TextEditingController();
-//   File? headImage;
-
-//   final TextEditingController wifeNameController = TextEditingController();
-//   final TextEditingController wifeGotraController = TextEditingController();
-//   final TextEditingController wifeOccupationController =
-//       TextEditingController();
-//   final TextEditingController wifeContactController = TextEditingController();
-//   final TextEditingController wifeBirthplaceController =
-//       TextEditingController();
-//   final TextEditingController wifeCurrentAddressController =
-//       TextEditingController();
-//   // File? wifeImage;
-
-//   final _imagePicker = ImagePicker();
-
-//   final border = const OutlineInputBorder(
-//       borderRadius: BorderRadius.horizontal(left: Radius.circular(5)));
-
-//   @override
-//   void dispose() {
-//     super.dispose();
-//   }
-
-//   void clearRegScreen(){
-//     headNameController.clear();
-//     headGotraController.clear();
-//     headOccupationController.clear();
-//     headContactController.clear();
-//     headBirthplaceController.clear();
-//     headCurrentAddressController.clear();
-//     headImage=null;
-//      wifeNameController.clear();
-//     wifeGotraController.clear();
-//     wifeOccupationController.clear();
-//     wifeContactController.clear();
-//     wifeBirthplaceController.clear();
-//     wifeCurrentAddressController.clear();
-//     // wifeImage=null;
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         centerTitle: true,
-//         title: Text(
-//           'Family Registration',
-//           style: TextStyle(
-//             fontWeight: FontWeight.bold,
-//             fontSize: 25,
-//             letterSpacing: 1.5,
-//             shadows: [
-//               Shadow(
-//                 color: Theme.of(context).colorScheme.primary,
-//                 blurRadius: 4.0,
-//                 offset: const Offset(-2.0, 2.0),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: SingleChildScrollView(
-//           child: Column(
-//             children: [
-//               _buildPersonForm("Householder"),
-//               const SizedBox(height: 20),
-//               _buildPersonForm("Spouse"),
-//               const SizedBox(height: 20),
-//               ElevatedButton(
-//                 onPressed: _submitForm,
-//                 style: ElevatedButton.styleFrom(
-//                   shape: const RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.all(Radius.circular(10)),
-//                   ),
-//                   backgroundColor: const Color.fromARGB(255, 109, 158, 243),
-//                   foregroundColor: Colors.white,
-//                 ),
-//                 child: const Text(
-//                   "Register Now",
-//                   style: TextStyle(
-//                     fontSize: 20,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildPersonForm(String title) {
-//     return Card(
-//       elevation: 4.0,
-//       child: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               title,
-//               style: const TextStyle(
-//                 fontWeight: FontWeight.bold,
-//                 fontSize: 20,
-//               ),
-//             ),
-//             const SizedBox(height: 10),
-//             _buildImagePicker('$title Photo',
-//                 headImage, (file) {
-//               setState(() {
-//               headImage = file;
-//               });
-//             }),
-//             _buildTextField(
-//                 '$title Name',
-//                 title == "Householder"
-//                     ? headNameController
-//                     : wifeNameController),
-//             _buildTextField(
-//                 '$title Gotra',
-//                 title == "Householder"
-//                     ? headGotraController
-//                     : wifeGotraController),
-//             _buildTextField(
-//                 '$title Occupation',
-//                 title == "Householder"
-//                     ? headOccupationController
-//                     : wifeOccupationController),
-//             _buildTextField(
-//                 '$title Contact',
-//                 title == "Householder"
-//                     ? headContactController
-//                     : wifeContactController),
-//             _buildTextField(
-//                 '$title Birthplace',
-//                 title == "Householder"
-//                     ? headBirthplaceController
-//                     : wifeBirthplaceController),
-//             _buildTextField(
-//                 '$title CurrentAddress',
-//                 title == "Householder"
-//                     ? headCurrentAddressController
-//                     : wifeCurrentAddressController),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildTextField(String label, TextEditingController controller) {
-//     return TextField(
-//       cursorColor: Colors.black,
-//       controller: controller,
-//       decoration: InputDecoration(
-//         hintText: label,
-//         errorText: _validate && controller.text.isEmpty ? 'Required' : null,
-//       ),
-//     );
-//   }
-
-//   Widget _buildImagePicker(
-//       String label, File? image, void Function(File?) onImageSelected) {
-//     return Column(
-//       children: [
-//         image != null
-//             ? Image.file(
-//                 image,
-//                 height: 100,
-//                 width: 100,
-//               )
-//             : const SizedBox(height: 8),
-//         Row(
-//           children: <Widget>[
-//             Expanded(
-//               child: TextField(
-//                 decoration: InputDecoration(
-//                   hintText: 'Upload coloured photograph',
-//                   errorText: _validate && image == null ? 'Required' : null,
-//                   suffixIcon: IconButton(
-//                     icon: Icon(Icons.upload_file),
-//                     onPressed: () {
-//                       _pickImage(onImageSelected);
-//                     },
-//                   ),
-//                 ),
-//               ),
-//             ),
-//             Container(
-//               decoration: BoxDecoration(
-//                   color: Colors.blue[800],
-//                   borderRadius:
-//                       const BorderRadius.only(topRight: Radius.circular(10))),
-//               child: IconButton(
-//                 icon: const Icon(
-//                   Icons.photo,
-//                   color: Colors.white,
-//                 ),
-//                 onPressed: () {
-//                   _captureImage(onImageSelected);
-//                 },
-//               ),
-//             )
-//           ],
-//         ),
-//       ],
-//     );
-//   }
-
-//   Future<void> _pickImage(void Function(File?) onImageSelected) async {
-//     final pickedFile =
-//         await _imagePicker.pickImage(source: ImageSource.gallery);
-//     onImageSelected(File(pickedFile!.path));
-//   }
-
-//   Future<void> _captureImage(void Function(File?) onImageSelected) async {
-//     final pickedFile = await _imagePicker.pickImage(source: ImageSource.camera);
-//     onImageSelected(File(pickedFile!.path));
-//   }
-
-//   void _submitForm() {
-//     setState(() {
-//       _validate = true;
-//       clearRegScreen();
-//     });
-
-//     if (_validateForm()) {
-//       // Handle form data submission
-//       final headData = {
-//         'Name': headNameController.text,
-//         'Gotra': headGotraController.text,
-//         'Occupation': headOccupationController.text,
-//         'Contact': headContactController.text,
-//         'Birthplace': headBirthplaceController.text,
-//         'CurrentAddress': headCurrentAddressController.text,
-//         'Photo': headImage?.path,
-//       };
-
-//       final wifeData = {
-//         'Name': wifeNameController.text,
-//         'Gotra': wifeGotraController.text,
-//         'Occupation': wifeOccupationController.text,
-//         'Contact': wifeContactController.text,
-//         'Birthplace': wifeBirthplaceController.text,
-//         'CurrentAddress': wifeCurrentAddressController.text,
-//         'Photo': headImage?.path,
-//       };
-
-//       print('Head of the Family: $headData');
-//       print('Wife: $wifeData');
-
-//       // You can save the data or perform other actions here
-//     }
-//   }
-
-//   bool _validateForm() {
-//     return headNameController.text.isNotEmpty &&
-//         headGotraController.text.isNotEmpty &&
-//         headOccupationController.text.isNotEmpty &&
-//         headContactController.text.isNotEmpty &&
-//         headBirthplaceController.text.isNotEmpty &&
-//         headCurrentAddressController.text.isNotEmpty &&
-//         wifeNameController.text.isNotEmpty &&
-//         wifeGotraController.text.isNotEmpty &&
-//         wifeOccupationController.text.isNotEmpty &&
-//         wifeContactController.text.isNotEmpty &&
-//         wifeBirthplaceController.text.isNotEmpty &&
-//         wifeCurrentAddressController.text.isNotEmpty
-//         //  &&
-//         // headImage != null &&
-//         // wifeImage != null
-//         ;
-//   }
-//   void saveUser() async {
- 
-//     String hName = headNameController.text.trim();
-//     String hGotra = headGotraController.text.trim();
-//     String hOccupation = headOccupationController.text.trim();
-//     String hContactString = headContactController.text.trim();
-//     String hBirthplace = headBirthplaceController.text.trim();
-//     String hCurrentAddress = headCurrentAddressController.text.trim();
-//     String wName = wifeNameController.text.trim();
-//     String wGotra = wifeGotraController.text.trim();
-//     String wOccupation = wifeOccupationController.text.trim();
-//     String wContactString = wifeContactController.text.trim();
-//     String wBirthplace = wifeBirthplaceController.text.trim();
-//     String wCurrentAddress = wifeCurrentAddressController.text.trim();
-
-//     if (hName != "" && hGotra != "" ) {
-//       UploadTask uploadTask = FirebaseStorage.instance
-//           .ref()
-//           .child("ProfilePictures")
-//           .child(Uuid().v1())
-//           .putFile(headImage!);
-
-//       StreamSubscription taskSubscription = uploadTask.snapshotEvents.listen(
-//         (snapshot) {
-//           double percentage =
-//               snapshot.bytesTransferred / snapshot.totalBytes * 100;
-//           print(percentage.toString());
-//         },
-//       );
-
-//       TaskSnapshot taskSnapshot = await uploadTask;
-
-//       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-
-//       taskSubscription.cancel();
-
-//       Map<String, dynamic> userData = {
-//         "hName": hName,
-//         "hGotra": hGotra,
-//         "hOccupation": hOccupation,
-//         "hContact": hContactString,
-//         "hBirthPlace": hBirthplace,
-//         "hCurrentAddress": hCurrentAddress,
-//         "headImage": downloadUrl,
-//         "wName": wName,
-//         "wGotra": wGotra,
-//         "wOccupation": wOccupation,
-//         "wContact": wContactString,
-//         "wBirthPlace": wBirthplace,
-//         "wCurrentAddress": wCurrentAddress,
-//       };
-
-//       await FirebaseFirestore.instance
-//           .collection("directory-users")
-//           .add(userData);
-
-//       print("User Created!");
-//     } else {
-//       print("User not created");
-//     }
-
-//     setState(() {
-//       headImage = null;
-//     });
-// }
-// }
-
-#1a6985
-
-6, 99, 131, 1
-
-
-
-  // void saveUser() async {
-  //   String hName = headNameController.text.trim();
-  //   String hGotra = headGotraController.text.trim();
-  //   String hOccupation = headOccupationController.text.trim();
-  //   String hContactString = headContactController.text.trim();
-  //   String hBirthplace = headBirthplaceController.text.trim();
-  //   String hCurrentAddress = headCurrentAddressController.text.trim();
-  //   String wName = wifeNameController.text.trim();
-  //   String wGotra = wifeGotraController.text.trim();
-  //   String wOccupation = wifeOccupationController.text.trim();
-  //   String wContactString = wifeContactController.text.trim();
-  //   String wBirthplace = wifeBirthplaceController.text.trim();
-  //   String wCurrentAddress = wifeCurrentAddressController.text.trim();
-
-  //   if (hName != "" &&
-  //       hGotra != "" &&
-  //       wName != "" &&
-  //       headProfilePic != null &&
-  //       wifeProfilePic != null) {
-  //     UploadTask headUploadTask = FirebaseStorage.instance
-  //         .ref()
-  //         .child("Profilepictures")
-  //         .child("headProfilePictures")
-  //         .child(Uuid().v1())
-  //         .putFile(headProfilePic!);
-
-  //     StreamSubscription taskSubscription =
-  //         headUploadTask.snapshotEvents.listen((snapshot) {
-  //       double percentage =
-  //           snapshot.bytesTransferred / snapshot.totalBytes * 100;
-  //       print(percentage.toString());
-  //     });
-  //     TaskSnapshot taskSnapshot = await headUploadTask;
-
-  //     String headDownloadUrl = await taskSnapshot.ref.getDownloadURL();
-
-  //     taskSubscription.cancel();
-
-  //      print("HEAD PROFILE PICTURE ${headDownloadUrl}");
-
-  //     UploadTask wifeUploadTask = FirebaseStorage.instance
-  //         .ref()
-  //         .child("Profilepictures")
-  //         .child("wifeProfilePictures")
-  //         .child(Uuid().v1())
-  //         .putFile(wifeProfilePic!);
-
-  //     StreamSubscription wifeTaskSubscription =
-  //         wifeUploadTask.snapshotEvents.listen((snapshot) {
-  //       double percentage =
-  //           snapshot.bytesTransferred / snapshot.totalBytes * 100;
-  //       print(percentage.toString());
-  //     });
-  //     TaskSnapshot wifeTaskSnapshot = await wifeUploadTask;
-
-  //     String wifeDownloadUrl = await wifeTaskSnapshot.ref.getDownloadURL();
-
-  //     wifeTaskSubscription.cancel();
-
-  //     print("WIFE PROFILE PICTURE ${wifeDownloadUrl}");
-
-  //     Map<String, dynamic> userData = {
-  //       "hProfilePic": headDownloadUrl,
-  //       "hName": hName,
-  //       "hGotra": hGotra,
-  //       "hOccupation": hOccupation,
-  //       "hContact": hContactString,
-  //       "hBirthPlace": hBirthplace,
-  //       "hCurrentAddress": hCurrentAddress,
-  //       "wProfilePic": wifeDownloadUrl,
-  //       "wName": wName,
-  //       "wGotra": wGotra,
-  //       "wOccupation": wOccupation,
-  //       "wContact": wContactString,
-  //       "wBirthPlace": wBirthplace,
-  //       "wCurrentAddress": wCurrentAddress,
-  //     };
-
-  //   await FirebaseFirestore.instance
-  //         .collection("directory-users")
-  //         .add(userData);
-
-  //     print("User Created!");
-  //   } else {
-  //     print("User not created");
-  //   }
-  //    setState(() {
-  //     headProfilePic = null;
-  //     wifeProfilePic = null;
-  //   });
-  // }
-
-
-// Future<void> saveUser() async {
-//   try {
-//     String hName = headNameController.text.trim();
-//     String hGotra = headGotraController.text.trim();
-//     String hOccupation = headOccupationController.text.trim();
-//     String hContactString = headContactController.text.trim();
-//     String hBirthplace = headBirthplaceController.text.trim();
-//     String hCurrentAddress = headCurrentAddressController.text.trim();
-//     String wName = wifeNameController.text.trim();
-//     String wGotra = wifeGotraController.text.trim();
-//     String wOccupation = wifeOccupationController.text.trim();
-//     String wContactString = wifeContactController.text.trim();
-//     String wBirthplace = wifeBirthplaceController.text.trim();
-//     String wCurrentAddress = wifeCurrentAddressController.text.trim();
-
-//     if (hName.isNotEmpty &&
-//         hGotra.isNotEmpty &&
-//         wName.isNotEmpty &&
-//         headProfilePic != null &&
-//         wifeProfilePic != null) {
-//       final UploadTask headUploadTask = FirebaseStorage.instance
-//           .ref()
-//           .child("Profilepictures")
-//           .child("headProfilePictures")
-//           .child(Uuid().v1())
-//           .putFile(headProfilePic!);
-
-//       final TaskSnapshot headTaskSnapshot = await headUploadTask;
-
-//       final String headDownloadUrl =
-//           await headTaskSnapshot.ref.getDownloadURL();
-
-//       print("HEAD PROFILE PICTURE: $headDownloadUrl");
-
-//       final UploadTask wifeUploadTask = FirebaseStorage.instance
-//           .ref()
-//           .child("Profilepictures")
-//           .child("wifeProfilePictures")
-//           .child(Uuid().v1())
-//           .putFile(wifeProfilePic!);
-
-//       final TaskSnapshot wifeTaskSnapshot = await wifeUploadTask;
-
-//       final String wifeDownloadUrl =
-//           await wifeTaskSnapshot.ref.getDownloadURL();
-
-//       print("WIFE PROFILE PICTURE: $wifeDownloadUrl");
-
-//       Map<String, dynamic> userData = {
-//         "hProfilePic": headDownloadUrl,
-//         "hName": hName,
-//         "hGotra": hGotra,
-//         "hOccupation": hOccupation,
-//         "hContact": hContactString,
-//         "hBirthPlace": hBirthplace,
-//         "hCurrentAddress": hCurrentAddress,
-//         "wProfilePic": wifeDownloadUrl,
-//         "wName": wName,
-//         "wGotra": wGotra,
-//         "wOccupation": wOccupation,
-//         "wContact": wContactString,
-//         "wBirthPlace": wBirthplace,
-//         "wCurrentAddress": wCurrentAddress,
-//       };
-
-//       await FirebaseFirestore.instance
-//           .collection("directory-users")
-//           .add(userData);
-
-//       print("User Created!");
-//     } else {
-//       print("User not created. Please fill in all required fields.");
-//     }
-//   } catch (error) {
-//     print("Error saving user: $error");
-//   } finally {
-//     setState(() {
-//       headProfilePic = null;
-//       wifeProfilePic = null;
-//     });
-//   }
-// }
-
-
-// ... Your other imports
-
-class _RegistrationPageState extends State<RegistrationPage> {
-  // ... Your existing variables
+import 'package:flutter_directory_app/edit_details_page.dart';
+import 'package:flutter_directory_app/home_page.dart';
+import 'package:flutter_directory_app/login_page.dart';
+import 'package:flutter_directory_app/main.dart';
+import 'package:flutter_directory_app/phone_number_notifier.dart';
+import 'package:flutter_directory_app/register_details_page.dart';
+import 'package:flutter_directory_app/user-details-page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ShowData extends ConsumerStatefulWidget {
+  String phoneNo;
+  ShowData({super.key, required this.phoneNo});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // ... Your existing app bar
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: ListView(
-          children: [
-            GestureDetector(
-              onTap: () async {
-                // ... Your existing code for selecting head profile picture
-              },
-              child: Container(
-                height: 150,
-                width: 150,
-                child: headProfilePic == null
-                    ? Image.asset('assets/images/user.png')
-                    : Image.file(headProfilePic!),
-              ),
-            ),
-            // ... Your existing code
-
-            // Marking the "Householder" fields as required
-            const SizedBox(height: 5),
-            const Center(
-              child: Text(
-                'Tap to select your profile photo',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 5),
-            _buildPersonForm("Householder"),
-            SizedBox(height: 10),
-            GestureDetector(
-              onTap: () async {
-                // ... Your existing code for selecting wife profile picture
-              },
-              child: Container(
-                height: 150,
-                width: 150,
-                child: wifeProfilePic == null
-                    ? Image.asset('assets/images/user.png')
-                    : Image.file(wifeProfilePic!),
-              ),
-            ),
-            // ... Your existing code
-
-            // Marking the "Spouse" fields as required
-            const SizedBox(height: 5),
-            const Center(
-              child: Text(
-                'Tap to select your profile photo',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 5),
-            _buildPersonForm("Spouse"),
-            SizedBox(height: 10),
-            _buildRegisterNowButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ... Your existing methods
-
-  Future<void> saveUser() async {
-    try {
-      // ... Your existing code
-
-      if (_validateForm()) {
-        // ... Your existing code for uploading images
-
-        Map<String, dynamic> userData = {
-          // ... Your existing code
-        };
-
-        await FirebaseFirestore.instance
-            .collection("directory-users")
-            .add(userData);
-
-        print("User Created!");
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        submitForm();
-      } else {
-        print("User not created. Please fill in all required fields.");
-      }
-    } catch (error) {
-      print("Error saving user: $error");
-    } finally {
-      // ... Your existing code
-    }
-  }
-
-  // ... Your existing methods
-
-  bool _validateForm() {
-    return headNameController.text.isNotEmpty &&
-        headGotraController.text.isNotEmpty &&
-        headOccupationController.text.isNotEmpty &&
-        headContactController.text.isNotEmpty &&
-        headBirthplaceController.text.isNotEmpty &&
-        headCurrentAddressController.text.isNotEmpty &&
-        wifeNameController.text.isNotEmpty &&
-        wifeGotraController.text.isNotEmpty &&
-        wifeOccupationController.text.isNotEmpty &&
-        wifeContactController.text.isNotEmpty &&
-        wifeBirthplaceController.text.isNotEmpty &&
-        wifeCurrentAddressController.text.isNotEmpty &&
-        headProfilePic != null &&
-        wifeProfilePic != null;
-  }
+  ConsumerState<ShowData> createState() => _ShowDataState();
 }
 
-
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-
-class ShowData extends StatefulWidget {
-  const ShowData({Key? key}) : super(key: key);
-
-  @override
-  State<ShowData> createState() => _ShowDataState();
-}
-
-class _ShowDataState extends State<ShowData> {
-  late TextEditingController _searchController;
+class _ShowDataState extends ConsumerState<ShowData> {
+  List _allResults = [];
+  List resultList = [];
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
+    _searchController.addListener(onSearchChanged);
     super.initState();
-    _searchController = TextEditingController();
+  }
+
+  onSearchChanged() {
+    print("SEARCH CONTROLLER TEXT ${_searchController.text}");
+    searchResultList();
+  }
+
+  searchResultList() {
+    var showResults = [];
+
+    if (_searchController.text != "") {
+      for (var clientSnapShot in _allResults) {
+        var hName = clientSnapShot['hName'].toString().toLowerCase();
+        var wName = clientSnapShot['wName'].toString().toLowerCase();
+        var hCurrentAddress =
+            clientSnapShot['hCurrentAddress'].toString().toLowerCase();
+        var wCurrentAddress =
+            clientSnapShot['wCurrentAddress'].toString().toLowerCase();
+        var hOccupation =
+            clientSnapShot['hOccupation'].toString().toLowerCase();
+        var wOccupation =
+            clientSnapShot['wOccupation'].toString().toLowerCase();
+        var hGotra = clientSnapShot['hGotra'].toString().toLowerCase();
+        var wGotra = clientSnapShot['wGotra'].toString().toLowerCase();
+
+        if (hName.contains(_searchController.text.toLowerCase()) ||
+            wName.contains(_searchController.text.toLowerCase()) ||
+            hCurrentAddress.contains(_searchController.text.toLowerCase()) ||
+            wCurrentAddress.contains(_searchController.text.toLowerCase()) ||
+            hOccupation.contains(_searchController.text.toLowerCase()) ||
+            wOccupation.contains(_searchController.text.toLowerCase()) ||
+            hGotra.contains(_searchController.text.toLowerCase()) ||
+            wGotra.contains(_searchController.text.toLowerCase())) {
+          showResults.add(clientSnapShot);
+        }
+      }
+    } else {
+      showResults = List.from(_allResults);
+    }
+    setState(() {
+      resultList = showResults;
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchData() async {
+    try {
+      var data = await FirebaseFirestore.instance
+          .collection("directory-users")
+          .orderBy("hName")
+          .get();
+
+      return data.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    } catch (e) {
+      // Handle errors if any
+      print("Error fetching data: $e");
+      return [];
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    getClientStream();
+    super.didChangeDependencies();
+  }
+
+  getClientStream() async {
+    var data = await FirebaseFirestore.instance
+        .collection("directory-users")
+        .orderBy("hName")
+        .get();
+
+    setState(() {
+      _allResults = data.docs;
+    });
+    searchResultList();
+  }
+
+  void logout() async {
+    var sharedPref = await SharedPreferences.getInstance();
+    var check = sharedPref.setBool(MyAppState.KEYLOGIN, false);
+    final notifier = ref.read(phoneNoProvider.notifier);
+    notifier.setPhoneNo(phoneNo: '');
+    sharedPref.setString(MyAppState.PHONENUM, '');
+    var checkNum = sharedPref.getString(MyAppState.PHONENUM);
+    print('VALUE OF SHARED PREFERENCE PHON NUMBER AFTER LOG OUT $checkNum');
+    await FirebaseAuth.instance.signOut();
+    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => LoginPage()));
+    print('SHARED PREFERENCE VALUE ${check}');
   }
 
   @override
   Widget build(BuildContext context) {
-    // ... Existing code
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Admin Panel"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () async {
-              final String? query = await showSearch(
-                context: context,
-                delegate: CustomSearchDelegate(),
-              );
-
-              if (query != null && query.isNotEmpty) {
-                _searchController.text = query;
-              }
-            },
+    final state = ref.watch(phoneNoProvider);
+    print("LETS CHECK STATE OF PHONENUMBERPROVIDER ${state.phoneNum}");
+    const border = OutlineInputBorder(
+        borderSide: BorderSide(
+          color: Color.fromRGBO(225, 225, 225, 1),
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(20)));
+    return WillPopScope(
+      onWillPop: () async {
+        // Handle back button press
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(
+              phoneNo: state.phoneNum,
+            ), // Replace HomePage with your actual homepage
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (query) {
-                  // You can implement live search here if needed
-                },
-                decoration: InputDecoration(
-                  hintText: "Search",
-                  border: border,
-                  enabledBorder: border,
-                  focusedBorder: border,
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      _searchController.clear();
-                    },
-                    icon: const Icon(Icons.clear),
-                  ),
-                ),
-              ),
+        );
+        return true; // Return true to allow popping
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
+          title: const Text(
+            "User Directory",
+            style: TextStyle(
+              color: Colors.white,
             ),
-            // ... Existing code
+          ),
+          backgroundColor: Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  logout();
+                },
+                icon: const Icon(Icons.exit_to_app))
           ],
         ),
-      ),
-    );
-  }
-}
-
-class CustomSearchDelegate extends SearchDelegate<String> {
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, '');
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    // Implement search results here based on the query
-    return Container();
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    // Implement search suggestions here based on the query
-    return Container();
-  }
-}
-
-
-
-
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-
-class ShowData extends StatefulWidget {
-  const ShowData({super.key});
-
-  @override
-  State<ShowData> createState() => _ShowDataState();
-}
-
-class _ShowDataState extends State<ShowData> {
-  @override
-  Widget build(BuildContext context) {
-    const border = OutlineInputBorder(
-      borderSide: BorderSide(
-        color: Color.fromRGBO(225, 225, 225, 1),
-      ),
-      borderRadius: BorderRadius.horizontal(left: Radius.circular(40)),
-    );
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Admin Panel"),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: TextField(
-                decoration: InputDecoration(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => RegistrationPage(
+                          phoneNo: state.phoneNum,
+                        )));
+          },
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 30,
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
                     hintText: "Search",
                     border: border,
                     enabledBorder: border,
                     focusedBorder: border,
                     prefixIcon: Icon(Icons.search),
-                    suffixIcon: IconButton(
-                        onPressed: () {
-                          
-                        },
-                        icon: const Icon(
-                          Icons.arrow_drop_down_circle_outlined,
-                          size: 25,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-                        ),
-                        
-                        ),
-                        ),
+                  ),
+                ),
               ),
-            ),
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection("directory-users")
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.active) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: snapshot.data!.docs.length,
-                          itemBuilder: (context, index) {
-                            Map<String, dynamic> userMap =
-                                snapshot.data!.docs[index].data();
-                            return Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Card(
-                                child: Column(
-                                  children: [
-                                    ListTile(
-                                      leading: CircleAvatar(
-                                        radius: 40,
-                                        backgroundImage: NetworkImage(
-                                            userMap["hProfilePic"]),
+              Expanded(
+                child: StreamBuilder(
+                  stream: () async {
+                    var data = await fetchData();
+                    return Stream.value(data);
+                  }(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        return FutureBuilder<List<Map<String, dynamic>>>(
+                          future: fetchData(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return Text('No data available.');
+                            } else {
+                              return ListView.builder(
+                                  itemCount: resultList.length,
+                                  itemBuilder: (context, index) {
+                                    var docId = resultList[index].id;
+
+                                  
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                UserDetailsPage(
+                                              userData: resultList[index].data()
+                                                  as Map<String, dynamic>,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 15, vertical: 5),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Expanded(
+                                                  child: Column(
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(5.0),
+                                                        child: Column(
+                                                          children: [
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceBetween,
+                                                              children: [
+                                                                const Text(
+                                                                  "Head of Family",
+                                                                  style: TextStyle(
+                                                                    fontSize: 15,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                                editIconButton(),
+                                                              ],
+                                                            ),
+                                                            ListTile(
+                                                              leading: CircleAvatar(
+                                                                radius: 30,
+                                                                backgroundImage:
+                                                                    NetworkImage(
+                                                                  resultList[index][
+                                                                          "hProfilePic"] ??
+                                                                      '',
+                                                                ),
+                                                              ),
+                                                              title: Text(
+                                                                resultList[index]["hName"] +
+                                                                    " " +
+                                                                    resultList[index]["hGotra"] +
+                                                                    " ",
+                                                                style:
+                                                                    const TextStyle(
+                                                                  fontSize: 15,
+                                                                ),
+                                                              ),
+                                                              subtitle: Column(
+                                                                children: [
+                                                                  Row(
+                                                                    children: [
+                                                                      const Icon(
+                                                                        Icons.work,
+                                                                        size: 15,
+                                                                        color: Color
+                                                                            .fromRGBO(
+                                                                                5,
+                                                                                111,
+                                                                                146,
+                                                                                1),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width: 5),
+                                                                      Text(
+                                                                        "${resultList[index]['hOccupation']}",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  Row(
+                                                                    children: [
+                                                                      const Icon(
+                                                                        Icons.phone,
+                                                                        size: 15,
+                                                                        color: Color
+                                                                            .fromRGBO(
+                                                                                5,
+                                                                                111,
+                                                                                146,
+                                                                                1),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width: 5),
+                                                                      Text(
+                                                                        "${resultList[index]['hContact']}",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            const Row(
+                                                              children: [
+                                                                Text(
+                                                                  "Spouse",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize: 15,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            ListTile(
+                                                              leading: CircleAvatar(
+                                                                radius: 30,
+                                                                backgroundImage:
+                                                                    NetworkImage(
+                                                                  resultList[index][
+                                                                          "wProfilePic"] ??
+                                                                      '',
+                                                                ),
+                                                              ),
+                                                              title: Text(
+                                                                resultList[index]["wName"] +
+                                                                    " " +
+                                                                    resultList[index]["wGotra"] +
+                                                                    " ",
+                                                                style:
+                                                                    const TextStyle(
+                                                                  fontSize: 15,
+                                                                ),
+                                                              ),
+                                                              subtitle: Column(
+                                                                children: [
+                                                                  Row(
+                                                                    children: [
+                                                                      const Icon(
+                                                                        Icons.work,
+                                                                        size: 15,
+                                                                        color: Color
+                                                                            .fromRGBO(
+                                                                                5,
+                                                                                111,
+                                                                                146,
+                                                                                1),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width: 5),
+                                                                      Text(
+                                                                        "${resultList[index]['wOccupation']}",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  Row(
+                                                                    children: [
+                                                                      const Icon(
+                                                                        Icons.phone,
+                                                                        size: 15,
+                                                                        color: Color
+                                                                            .fromRGBO(
+                                                                                5,
+                                                                                111,
+                                                                                146,
+                                                                                1),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width: 5),
+                                                                      Row(
+                                                                        mainAxisAlignment:
+                                                                            MainAxisAlignment.spaceBetween,
+                                                                        children: [
+                                                                          Text(
+                                                                            "${resultList[index]['wContact']}",
+                                                                            style:
+                                                                                const TextStyle(
+                                                                              fontSize: 12,
+                                                                            ),
+                                                                          ),
+                                                                          const SizedBox(
+                                                                              width: 40),
+                                                                          const Text(
+                                                                            "... more",
+                                                                            style: TextStyle(
+                                                                                color: Color.fromARGB(
+                                                                                    255,
+                                                                                    24,
+                                                                                    99,
+                                                                                    26),
+                                                                                fontWeight: FontWeight.w600),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Divider(
+                                            thickness: 0.4,
+                                          ),
+                                        ],
                                       ),
-                                      title: Text(
-                                        userMap["hName"] +
-                                            "(${userMap['hOccupation']})",
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      subtitle: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                                "Current Address = ${userMap['hCurrentAddress']}"),
-                                            Text(
-                                                "Contact Number = ${userMap['hContact']}"),
-                                          ]),
-                                    ),
-                                    ListTile(
-                                      leading: CircleAvatar(
-                                        radius: 30,
-                                        backgroundImage: NetworkImage(
-                                            userMap["wProfilePic"]),
-                                      ),
-                                      title: Text(
-                                        userMap["wName"] +
-                                            "(${userMap['wOccupation']})",
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      subtitle: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                                "Spouse Current Address = ${userMap['wCurrentAddress']}"),
-                                            Text(
-                                                "Spouse Contact Number = ${userMap['wContact']}"),
-                                          ]),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          });
+                                    );
+                                  });
+                           
+                           
+                           
+                           
+                           
+                            }
+                          },
+                        );
+                      } else {
+                        return const Text("No data");
+                      }
                     } else {
-                      return const Text("No data");
+                      return const Center(child: CircularProgressIndicator());
                     }
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-
-
-
-import 'package:flutter/material.dart';
-
-class ShowData extends StatefulWidget {
-  const ShowData({super.key});
-
-  @override
-  State<ShowData> createState() => _ShowDataState();
-}
-
-class _ShowDataState extends State<ShowData> {
-  // ... Existing code ...
-
-  @override
-  Widget build(BuildContext context) {
-    // ... Existing code ...
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("User Directory"),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ... Existing code ...
-
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection("directory-users")
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.active) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: resultList.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                // Navigate to UserDetailsPage when a card is tapped
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserDetailsPage(
-                                      userData: resultList[index],
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      // ... Existing code ...
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    } else {
-                      return const Text("No data");
-                    }
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-import 'package:flutter/material.dart';
-
-class UserDetailsPage extends StatelessWidget {
-  final Map<String, dynamic> userData;
-
-  UserDetailsPage({required this.userData});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("User Details"),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "HOUSEHOLDER INFO...",
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            ListTile(
-              leading: CircleAvatar(
-                radius: 40,
-                backgroundImage: NetworkImage(userData["hProfilePic"]),
-              ),
-              title: Text(
-                "${userData["hName"]} ${userData["hGotra"]} (${userData['hOccupation']})",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Current Address = ${userData['hCurrentAddress']}"),
-                  Text("Contact Number = ${userData['hContact']}"),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              "SPOUSE INFO...",
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            ListTile(
-              leading: CircleAvatar(
-                radius: 30,
-                backgroundImage: NetworkImage(userData["wProfilePic"]),
-              ),
-              title: Text(
-                "${userData["wName"]} ${userData["wGotra"]} (${userData['wOccupation']})",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Spouse Current Address = ${userData['wCurrentAddress']}"),
-                  Text("Spouse Contact Number = ${userData['wContact']}"),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-
-
-
-
-
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:uuid/uuid.dart';
-
-class EditDetails extends StatefulWidget {
-  final Map<String, dynamic> userData;
-  final String userId;
-
-  const EditDetails({Key? key, required this.userData, required this.userId}) : super(key: key);
-
-  @override
-  State<EditDetails> createState() => _EditDetailsState();
-}
-
-class _EditDetailsState extends State<EditDetails> {
-  // ... other controllers and variables
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit Details"),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        final hSelectedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
-                        if (hSelectedImage != null) {
-                          File editedFile = File(hSelectedImage.path);
-                          setState(() {
-                            headEditedProfilePic = editedFile;
-                          });
-                          print("Image selected");
-                        } else {
-                          print("No image selected");
-                        }
-                      },
-                      child: Container(
-                        height: 150,
-                        width: 150,
-                        child: headEditedProfilePic == null
-                            ? Image.network(widget.userData['hProfilePic'])
-                            : Image.file(headEditedProfilePic!),
-                      ),
-                    ),
-                    // ... other widgets
-                    _buildUpdateNowButton(),
-                  ],
+                  },
                 ),
               ),
             ],
@@ -1538,48 +494,188 @@ class _EditDetailsState extends State<EditDetails> {
       ),
     );
   }
-
-  Future<String> uploadFile(File file, String folder) async {
-    try {
-      final ref = FirebaseStorage.instance.ref().child("Profilepictures").child(folder).child(Uuid().v1());
-      final uploadTask = ref.putFile(file);
-      final taskSnapshot = await uploadTask;
-      return await taskSnapshot.ref.getDownloadURL();
-    } catch (error) {
-      print("Error uploading file: $error");
-      throw error;
-    }
-  }
-
-  Future<void> _uploadAndSaveImage() async {
-    if (headEditedProfilePic != null) {
-      final downloadUrl = await uploadFile(headEditedProfilePic!, "headProfilePictures");
-      setState(() {
-        editedData['hProfilePic'] = downloadUrl;
-      });
-    }
-  }
-
-  ElevatedButton _buildUpdateNowButton() {
-    return ElevatedButton(
-      onPressed: () async {
-        await _uploadAndSaveImage();
-        // Your existing code...
-      },
-      style: ElevatedButton.styleFrom(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
-        foregroundColor: Colors.white,
-      ),
-      child: const Text(
-        "Update",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
 }
+
+
+
+
+
+
+
+
+
+
+IconButton(
+                                                  onPressed: () async {
+                                                    var sharedPref =
+                                                        await SharedPreferences
+                                                            .getInstance();
+                                                    checkNum = sharedPref
+                                                        .getString(MyAppState
+                                                            .PHONENUM);
+                                                            print("VALUE OF CHECKnUM AT ICON BUTTON $checkNum");
+                                                    if (checkNum ==
+                                                            resultList[index]
+                                                                ['addedBy'] ||
+                                                        checkNum ==
+                                                            resultList[index]
+                                                                ['hContact'] ||
+                                                        checkNum ==
+                                                            resultList[index]
+                                                                ['wContact']) {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              EditDetails(
+                                                            userData: resultList[
+                                                                        index]
+                                                                    .data()
+                                                                as Map<String,
+                                                                    dynamic>,
+                                                            userId: docId,
+                                                            phoneNo:
+                                                                widget.phoneNo,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.edit,
+                                                    color: Color.fromRGBO(
+                                                        5, 111, 146, 1),
+                                                  ))
+
+
+
+
+
+
+
+
+
+IconButton(
+                                                  onPressed: () async {
+                                                    var sharedPref =
+                                                        await SharedPreferences
+                                                            .getInstance();
+                                                    checkNum = sharedPref
+                                                        .getString(MyAppState
+                                                            .PHONENUM);
+                                                            print("VALUE OF CHECKnUM AT ICON BUTTON $checkNum");
+                                                    
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              EditDetails(
+                                                            userData: resultList[
+                                                                        index]
+                                                                    .data()
+                                                                as Map<String,
+                                                                    dynamic>,
+                                                            userId: docId,
+                                                            phoneNo:
+                                                                widget.phoneNo,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.edit,
+                                                    color: Color.fromRGBO(
+                                                        5, 111, 146, 1),
+                                                  ))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ GestureDetector(
+                                                            onTap: () async {
+                                                              var sharedPref =
+                                                                  await SharedPreferences
+                                                                      .getInstance();
+                                                              checkNum = sharedPref
+                                                                  .getString(
+                                                                      MyAppState
+                                                                          .PHONENUM);
+                                                              print(
+                                                                  "VALUE OF CHECKnUM AT ICON BUTTON $checkNum");
+                                                              if (checkNum == resultList[index]['addedBy'] ||
+                                                                  checkNum ==
+                                                                      resultList[
+                                                                              index]
+                                                                          [
+                                                                          'hContact'] ||
+                                                                  checkNum ==
+                                                                      resultList[
+                                                                              index]
+                                                                          [
+                                                                          'wContact']) {
+                                                                // ignore: use_build_context_synchronously
+                                                                Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            EditDetails(
+                                                                      userData: resultList[index]
+                                                                              .data()
+                                                                          as Map<
+                                                                              String,
+                                                                              dynamic>,
+                                                                      userId:
+                                                                          docId,
+                                                                      phoneNo:
+                                                                          widget
+                                                                              .phoneNo,
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              } else {
+                                                                const snackdemo =
+                                                                    SnackBar(
+                                                                  content: Text(
+                                                                      'OOPS! You don\'t have any access to edit this user'),
+                                                                 
+                                                                  behavior:
+                                                                      SnackBarBehavior
+                                                                          .floating,
+                                                                  margin:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              5),
+                                                                );
+                                                                ScaffoldMessenger.of(
+                                                                        context)
+                                                                    .showSnackBar(
+                                                                        snackdemo);
+                                                              }
+                                                            },
+                                                            child: const Icon(
+                                                              Icons.edit_note,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      5,
+                                                                      111,
+                                                                      146,
+                                                                      1),
+                                                              size: 25,
+                                                            ),
+                                                          ),                                              

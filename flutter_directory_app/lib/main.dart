@@ -3,28 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/firebase_options.dart';
 import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/login_page.dart';
-import 'package:flutter_directory_app/register_details_page.dart';
+import 'package:flutter_directory_app/phone_number_notifier.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends ConsumerStatefulWidget {
+
+  const MyApp({super.key });
 
   @override
+  ConsumerState<MyApp> createState() => MyAppState();
+}
+
+class MyAppState extends ConsumerState<MyApp> {
+   static const String KEYLOGIN = 'login';
+   static const String PHONENUM = '';
+  @override
   Widget build(BuildContext context) {
+     hello() async {
+      var sharedPref = await SharedPreferences.getInstance();
+      var checkNum = sharedPref.getString(MyAppState.PHONENUM);
+      print("SHARED PREFERENCE CALLED AT BUILD CONTEXT OF MAIN.DART $checkNum");
+    }
+
+    hello();
     return MaterialApp(
       title: 'Directory App',
       initialRoute: '/',
       routes: {
-        
+        '/first': (context) =>  HomePage(),
         '/second': (context) => const LoginPage(),
-        // '/third': (context) => const RegistrationPage(),
+        // '/third': (context) =>  ShowData(phoneNo: ,),
       },
       theme: ThemeData(
         inputDecorationTheme: const InputDecorationTheme(
