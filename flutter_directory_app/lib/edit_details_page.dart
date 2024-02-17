@@ -118,49 +118,62 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                           ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () async {
-                          final wSelectedImage = await ImagePicker()
-                              .pickImage(source: ImageSource.gallery);
-                          if (wSelectedImage != null) {
-                            File wEditedFile = File(wSelectedImage.path);
-                            setState(() {
-                              wifeEditedProfilePic = wEditedFile;
-                            });
-                            print("Image selected");
-                          } else {
-                            print("No image selected");
-                          }
-                        },
-                        child: Container(
-                          height: 150,
-                          width: 150,
-                          child: wifeEditedProfilePic == null
-                              ? Image.network(widget.userData['wProfilePic'])
-                              : Image.file(wifeEditedProfilePic!),
-                        ),
-                      ),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            children: [
-                              _buildTextField(
-                                  "Name", wNameEditController, 'wName'),
-                                  _buildTextField(
-                                  "Gotra", wGotraEditController, 'wGotra'),
-                              _buildTextField("Occupation",
-                                  wOccupationEditController, 'wOccupation'),
-                              _buildTextField("Current Address",
-                                  wAddressEditController, 'wCurrentAddress'),
-                              _buildTextField("Contact Number",
-                                  wContactEditController, 'wContact'),
-                              _buildTextField("Birth Place",
-                                  wBirthPlaceEditController, 'wBirthPlace'),
-                            ],
+
+                      if (widget.userData["wName"] != null ||
+                      widget.userData["wGotra"] != null ||
+                      widget.userData["wOccupation"] != null ||
+                      widget.userData["wContact"] != null ||
+                      widget.userData['wCurrentAddress'] != null ||
+                      widget.userData['wBirthPlace'] != null) ...[
+
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final wSelectedImage = await ImagePicker()
+                                  .pickImage(source: ImageSource.gallery);
+                              if (wSelectedImage != null) {
+                                File wEditedFile = File(wSelectedImage.path);
+                                setState(() {
+                                  wifeEditedProfilePic = wEditedFile;
+                                });
+                                print("Image selected");
+                              } else {
+                                print("No image selected");
+                              }
+                            },
+                            child: Container(
+                              height: 150,
+                              width: 150,
+                              child: wifeEditedProfilePic == null
+                                  ? Image.network(widget.userData['wProfilePic'])
+                                  : Image.file(wifeEditedProfilePic!),
+                            ),
                           ),
-                        ),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Column(
+                                children: [
+                                  _buildTextField(
+                                      "Name", wNameEditController, 'wName'),
+                                      _buildTextField(
+                                      "Gotra", wGotraEditController, 'wGotra'),
+                                  _buildTextField("Occupation",
+                                      wOccupationEditController, 'wOccupation'),
+                                  _buildTextField("Current Address",
+                                      wAddressEditController, 'wCurrentAddress'),
+                                  _buildTextField("Contact Number",
+                                      wContactEditController, 'wContact'),
+                                  _buildTextField("Birth Place",
+                                      wBirthPlaceEditController, 'wBirthPlace'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                    ],
                       _buildUpdateNowButton(),
                     ],
                   ),

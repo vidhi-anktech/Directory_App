@@ -5,15 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/main.dart';
+import 'package:get/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class RegistrationPage extends ConsumerStatefulWidget {
-  String phoneNo;
-   RegistrationPage({super.key, required this.phoneNo});
+   RegistrationPage({super.key, 
+   });
   
 
   @override
@@ -64,6 +66,14 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     
+ hello() async {
+      var sharedPref = await SharedPreferences.getInstance();
+      var checkNum = sharedPref.getString(MyAppState.PHONENUM);
+      print("SHARED PREFERENCE CALLED AT BUILD CONTEXT OF REGISTRATION PAGE $checkNum");
+    }
+
+    hello();
+
     return Scaffold(
       appBar:AppBar(
         backgroundColor: const Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
@@ -88,27 +98,41 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: [
-            GestureDetector(
-              onTap: () async {
-                final hSelectedImage =
-                    await ImagePicker().pickImage(source: ImageSource.gallery);
-                if (hSelectedImage != null) {
-                  File convertedFile = File(hSelectedImage.path);
-                  setState(() {
-                    headProfilePic = convertedFile;
-                  });
-                  print("Image selected");
-                } else {
-                  print("No image selected");
-                }
-              },
-              child: Container(
-                height: 150,
-                width: 150,
-                child: headProfilePic == null
-                    ? Image.asset('assets/images/user.png')
-                    : Image.file(headProfilePic!),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final hSelectedImage =
+                        await ImagePicker().pickImage(source: ImageSource.gallery);
+                    if (hSelectedImage != null) {
+                      File convertedFile = File(hSelectedImage.path);
+                
+                      // Crop feature for convertedFile of householder
+                
+                      setState(() {
+                        headProfilePic = convertedFile;
+                      });
+                      print("Image selected");
+                    } else {
+                      print("No image selected");
+                    }
+                  },
+                  child: Container(
+                    height: 150,
+                    width: 150,
+                    child: headProfilePic == null
+                        ? Image.asset('assets/images/user.png')
+                        : Image.file(headProfilePic!),
+                  ),
+                ),
+                if(headProfilePic!=null)...[
+                   IconButton(onPressed: (){
+                    _cropImage();
+                   }, 
+                  icon: const Icon(Icons.crop))
+                ]
+              ],
             ),
             const SizedBox(height: 5),
             const Center(
@@ -160,7 +184,39 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     );
   }
 
+   
+  Future _cropImage() async { 
+    print('CROP IMAGE METHOD CALLED');
+    if (headProfilePic != null) { 
+      CroppedFile? cropped = await ImageCropper().cropImage( 
+          sourcePath: headProfilePic!.path, 
+          aspectRatioPresets:  
+               [ 
+                  CropAspectRatioPreset.square, 
+                  CropAspectRatioPreset.ratio3x2, 
+                  CropAspectRatioPreset.original, 
+                  CropAspectRatioPreset.ratio4x3, 
+                  CropAspectRatioPreset.ratio16x9 
+                ] ,
+               
+          uiSettings: [ 
+            AndroidUiSettings( 
+                toolbarTitle: 'Crop', 
+                cropGridColor: Colors.black, 
+                initAspectRatio: CropAspectRatioPreset.original, 
+                lockAspectRatio: false), 
+            IOSUiSettings(title: 'Crop') 
+          ]); 
   
+      if (cropped != null) { 
+        setState(() { 
+          headProfilePic = File(cropped.path); 
+        }); 
+      } 
+    } 
+  } 
+
+
   _buildRegisterNowButton() {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
@@ -211,7 +267,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
               title,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
+                fontSize: 15,
               ),
             ),
             const SizedBox(height: 10),
@@ -256,8 +312,13 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       cursorColor: Colors.black,
       controller: controller,
       decoration: InputDecoration(
+        border: const UnderlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(1.0))),
         hintText: label,
-        errorText: validate && controller.text.isEmpty ? 'Required' : null,
+        hintStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        errorText: validate ? 'Required' : null,
         errorStyle: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600
@@ -288,29 +349,41 @@ Future<void> saveUser() async {
 
     if (hName.isNotEmpty &&
         hGotra.isNotEmpty &&
-        wName.isNotEmpty &&
-        headProfilePic != null &&
-        wifeProfilePic != null) {
+        headProfilePic != null ) {
       final headDownloadUrl =
           await uploadFile(headProfilePic!, "headProfilePictures");
-      final wifeDownloadUrl =
-          await uploadFile(wifeProfilePic!, "wifeProfilePictures");
+     String? wifeDownloadUrl;
+
+         if (wifeProfilePic != null) {
+      wifeDownloadUrl = await uploadFile(wifeProfilePic!, "wifeProfilePictures");
+    }
 
       Map<String, dynamic> userData = {
         "hProfilePic": headDownloadUrl,
-        "hName": hName,
-        "hGotra": hGotra,
-        "hOccupation": hOccupation,
+        "hName": hName.capitalizeFirst,
+        "hGotra": hGotra.capitalizeFirst,
+        "hOccupation": hOccupation.capitalizeFirst,
         "hContact": hContact,
-        "hBirthPlace": hBirthplace,
-        "hCurrentAddress": hCurrentAddress,
+        "hBirthPlace": hBirthplace.capitalizeFirst,
+        "hCurrentAddress": hCurrentAddress.capitalizeFirst,
+         if (wifeDownloadUrl != null) ...{
         "wProfilePic": wifeDownloadUrl,
-        "wName": wName,
-        "wGotra": wGotra,
-        "wOccupation": wOccupation,
+        "wName": wName.capitalizeFirst,
+        "wGotra": wGotra.capitalizeFirst,
+        "wOccupation": wOccupation.capitalizeFirst,
         "wContact": wContact,
-        "wBirthPlace": wBirthplace,
-        "wCurrentAddress": wCurrentAddress,
+        "wBirthPlace": wBirthplace.capitalizeFirst,
+        "wCurrentAddress": wCurrentAddress.capitalizeFirst,
+      }
+      else ...{
+        "wProfilePic": null,
+        "wName": null,
+        "wGotra": null,
+        "wOccupation":null,
+        "wContact": null,
+        "wBirthPlace": null,
+        "wCurrentAddress": null,
+      },
         "addedBy" : showNum,
       };
 
@@ -437,8 +510,7 @@ _validateForm() {
   // Check if required fields are not empty
   return headNameController.text.isNotEmpty &&
       headGotraController.text.isNotEmpty &&
-      headContactController.text.isNotEmpty &&
-      wifeNameController.text.isNotEmpty;
+      headContactController.text.isNotEmpty ;
 }
 
 }
