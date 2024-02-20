@@ -28,13 +28,7 @@ class MyAppState extends ConsumerState<MyApp> {
    static const String PHONENUM = '';
   @override
   Widget build(BuildContext context) {
-     hello() async {
-      var sharedPref = await SharedPreferences.getInstance();
-      var checkNum = sharedPref.getString(MyAppState.PHONENUM);
-      print("SHARED PREFERENCE CALLED AT BUILD CONTEXT OF MAIN.DART $checkNum");
-    }
 
-    hello();
     return MaterialApp(
       title: 'Directory App',
       initialRoute: '/',

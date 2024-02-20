@@ -28,6 +28,10 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
 );
   bool validate = false;
   bool _loading = false;
+   bool validateHeadName = false;
+  bool validateHeadGotra = false;
+  bool validateHeadContact = false;
+
 
   final TextEditingController headNameController = TextEditingController();
 
@@ -98,7 +102,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: [
-            Row(
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
@@ -144,29 +148,40 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
             const SizedBox(height: 5),
             _buildPersonForm("Householder"),
             SizedBox(height: 10),
-            GestureDetector(
-              onTap: () async {
-                final wSelectedImage =
-                    await ImagePicker().pickImage(source: ImageSource.gallery);
-                if (wSelectedImage != null) {
-                  File wConvertedFile = File(wSelectedImage.path);
-                  setState(() {
-                    wifeProfilePic = wConvertedFile;
-                    print("setstate triggered");
-                  });
-                  print("Image selected");
-                } else {
-                  print("No image selected");
-                }
-              },
-              child: Container(
-                height: 150,
-                width: 150,
-                child: wifeProfilePic == null
-                    ? Image.asset('assets/images/user.png')
-                    : Image.file(wifeProfilePic!),
-              ),
+            Column(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final wSelectedImage =
+                        await ImagePicker().pickImage(source: ImageSource.gallery);
+                    if (wSelectedImage != null) {
+                      File wConvertedFile = File(wSelectedImage.path);
+                      setState(() {
+                        wifeProfilePic = wConvertedFile;
+                        print("setstate triggered");
+                      });
+                      print("Image selected");
+                    } else {
+                      print("No image selected");
+                    }
+                  },
+                  child: Container(
+                    height: 150,
+                    width: 150,
+                    child: wifeProfilePic == null
+                        ? Image.asset('assets/images/user.png')
+                        : Image.file(wifeProfilePic!),
+                  ),
+                ),
+                   if(wifeProfilePic!=null)...[
+                   IconButton(onPressed: (){
+                    _wCropImage();
+                   }, 
+                  icon: const Icon(Icons.crop))
+                ],
+              ],
             ),
+           
             const SizedBox(height: 5),
             const Center(
               child: Text(
@@ -211,6 +226,37 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       if (cropped != null) { 
         setState(() { 
           headProfilePic = File(cropped.path); 
+        }); 
+      } 
+    } 
+  } 
+
+Future _wCropImage() async { 
+    print('CROP IMAGE METHOD CALLED');
+    if (wifeProfilePic != null) { 
+      CroppedFile? cropped = await ImageCropper().cropImage( 
+          sourcePath: wifeProfilePic!.path, 
+          aspectRatioPresets:  
+               [ 
+                  CropAspectRatioPreset.square, 
+                  CropAspectRatioPreset.ratio3x2, 
+                  CropAspectRatioPreset.original, 
+                  CropAspectRatioPreset.ratio4x3, 
+                  CropAspectRatioPreset.ratio16x9 
+                ] ,
+               
+          uiSettings: [ 
+            AndroidUiSettings( 
+                toolbarTitle: 'Crop', 
+                cropGridColor: Colors.black, 
+                initAspectRatio: CropAspectRatioPreset.original, 
+                lockAspectRatio: false), 
+            IOSUiSettings(title: 'Crop') 
+          ]); 
+  
+      if (cropped != null) { 
+        setState(() { 
+          wifeProfilePic = File(cropped.path); 
         }); 
       } 
     } 
@@ -275,39 +321,45 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                 '$title Name',
                 title == "Householder"
                     ? headNameController
-                    : wifeNameController),
+                    : wifeNameController,
+                    title == "Householder" ? validateHeadName : false),
             _buildTextField(
                 '$title Gotra',
                 title == "Householder"
                     ? headGotraController
-                    : wifeGotraController),
+                    : wifeGotraController,
+                      title == "Householder" ? validateHeadGotra : false,),
             _buildTextField(
                 '$title Occupation',
                 title == "Householder"
                     ? headOccupationController
-                    : wifeOccupationController),
+                    : wifeOccupationController,
+                       false,),
             _buildTextField(
                 '$title Contact',
                 title == "Householder"
                     ? headContactController
-                    : wifeContactController),
+                    : wifeContactController,
+                       title == "Householder" ? validateHeadContact : false,),
             _buildTextField(
                 '$title Birthplace',
                 title == "Householder"
                     ? headBirthplaceController
-                    : wifeBirthplaceController),
+                    : wifeBirthplaceController,
+                      false,),
             _buildTextField(
                 '$title CurrentAddress',
                 title == "Householder"
                     ? headCurrentAddressController
-                    : wifeCurrentAddressController),
+                    : wifeCurrentAddressController,
+                      false,),
           ],
         ),
       ),
     );
   }
 
-  _buildTextField(String label, TextEditingController controller) {
+  _buildTextField(String label, TextEditingController controller, bool validate) {
     return TextField(
       cursorColor: Colors.black,
       controller: controller,
@@ -366,7 +418,7 @@ Future<void> saveUser() async {
         "hContact": hContact,
         "hBirthPlace": hBirthplace.capitalizeFirst,
         "hCurrentAddress": hCurrentAddress.capitalizeFirst,
-         if (wifeDownloadUrl != null) ...{
+         if (wifeDownloadUrl != null ) ...{
         "wProfilePic": wifeDownloadUrl,
         "wName": wName.capitalizeFirst,
         "wGotra": wGotra.capitalizeFirst,
@@ -507,10 +559,11 @@ void _hideLoading() {
 }
 
 _validateForm() {
-  // Check if required fields are not empty
-  return headNameController.text.isNotEmpty &&
-      headGotraController.text.isNotEmpty &&
-      headContactController.text.isNotEmpty ;
+  validateHeadName = headNameController.text.isEmpty;
+    validateHeadGotra = headGotraController.text.isEmpty;
+    validateHeadContact = headContactController.text.isEmpty;
+
+    return !validateHeadName && !validateHeadGotra && !validateHeadContact;
 }
 
 }

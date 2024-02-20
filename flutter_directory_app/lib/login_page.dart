@@ -75,8 +75,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(phoneNoProvider);
-    print("LETS NACHO ${state.phoneNum}");
-
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
         height: 50,
@@ -191,10 +189,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     final notifier = ref.read(phoneNoProvider.notifier);
                     notifier.setPhoneNo(phoneNo: phone);
 
-                    final state = ref.read(phoneNoProvider);
-                    final phone1 = state.phoneNum;
-
-                    print("phone1111111: $phone1");
                     await sharedPref.setString(MyAppState.PHONENUM, state.phoneNum);
                     setState(() {
                       _validateNumber =

@@ -45,7 +45,6 @@ class _ShowDataState extends ConsumerState<ShowData> {
   }
 
   onSearchChanged() {
-    print("SEARCH CONTROLLER TEXT ${_searchController.text}");
     searchResultList();
   }
 
@@ -129,7 +128,6 @@ class _ShowDataState extends ConsumerState<ShowData> {
   @override
   Widget build(BuildContext context) {
     check();
-    print('VALUE OF CHECK() AT BUILDCONTEXT $check()');
 
     void logout() async {
       var sharedPref = await SharedPreferences.getInstance();
@@ -225,17 +223,17 @@ class _ShowDataState extends ConsumerState<ShowData> {
                 child: StreamBuilder(
                   stream: FirebaseFirestore.instance
                       .collection("directory-users")
+                      .orderBy("hName")
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.active) {
                       if (snapshot.hasData && snapshot.data != null) {
+                        resultList = snapshot.data!.docs;
                         return ListView.builder(
                           controller: _controller,
                           itemCount: resultList.length,
                           itemBuilder: (context, index) {
                             var docId = resultList[index].id;
-                            print(
-                                'VALUE OF WNAME : ${resultList[index]['wName']}');
 
                             return GestureDetector(
                               onTap: () {
@@ -290,8 +288,6 @@ class _ShowDataState extends ConsumerState<ShowData> {
                                                                 sharedPref.getString(
                                                                     MyAppState
                                                                         .PHONENUM);
-                                                            print(
-                                                                "CHECKNUM INSIDE EDIT WIDGET $checkNum");
                                                             if (checkNum == resultList[index]['addedBy'] ||
                                                                 checkNum ==
                                                                     resultList[
@@ -329,8 +325,7 @@ class _ShowDataState extends ConsumerState<ShowData> {
                                                                 snapshot) {
                                                               var checkNum =
                                                                   snapshot.data;
-                                                              print(
-                                                                  "VALUE OF CHECKNUM INSIDE FUTUREBUILDER $checkNum");
+                                                              
                                                               return (checkNum == resultList[index]['addedBy'] ||
                                                                       checkNum ==
                                                                           resultList[index]
@@ -471,7 +466,9 @@ class _ShowDataState extends ConsumerState<ShowData> {
                                                           ),
                                                           title: Text(
                                                             resultList[index]
-                                                                ['wName'] + " " + resultList[index]['wGotra'],
+                                                                ['wName'] 
+                                                                + " " + resultList[index]['wGotra']
+                                                                ,
                                                             style:
                                                                 const TextStyle(
                                                               fontSize: 15,

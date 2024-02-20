@@ -65,12 +65,9 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
       if (userCredential.user != null) {
-        print('GREAT SUCCESS!');
         var sharedPref = await SharedPreferences.getInstance();
         sharedPref.setBool(MyAppState.KEYLOGIN, true);
         sharedPref.setString(MyAppState.PHONENUM, widget.phoneNo);
-        var checkNum = sharedPref.getString(MyAppState.PHONENUM);
-        print("CHECKING NUMBER AT VERIFY OTP $checkNum");
 
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => ShowData()));
@@ -99,7 +96,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         },
         timeout: const Duration(seconds: 30),
       );
-      print("_verificationId: $_verificationId");
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
