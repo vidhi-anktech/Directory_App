@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/firebase_options.dart';
 import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/login_page.dart';
-import 'package:flutter_directory_app/phone_number_notifier.dart';
+import 'package:flutter_directory_app/show_data.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +26,8 @@ class MyApp extends ConsumerStatefulWidget {
 class MyAppState extends ConsumerState<MyApp> {
    static const String KEYLOGIN = 'login';
    static const String PHONENUM = '';
+   static const String STATEVALUE = '';
+   static const String CITYVALUE = '';
   @override
   Widget build(BuildContext context) {
 
@@ -35,9 +37,10 @@ class MyAppState extends ConsumerState<MyApp> {
       routes: {
         '/first': (context) =>  HomePage(),
         '/second': (context) => const LoginPage(),
-        // '/third': (context) =>  ShowData(phoneNo: ,),
+        '/third': (context) =>  const ShowData(),
       },
       theme: ThemeData(
+        fontFamily: GoogleFonts.openSans().fontFamily,
         inputDecorationTheme: const InputDecorationTheme(
           hintStyle: TextStyle(
             fontWeight: FontWeight.bold,
@@ -49,6 +52,7 @@ class MyAppState extends ConsumerState<MyApp> {
           cursorColor: Colors.black,
         ),
         textTheme: const TextTheme(
+          
             titleLarge: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 30,
@@ -61,10 +65,10 @@ class MyAppState extends ConsumerState<MyApp> {
               fontWeight: FontWeight.bold,
               fontSize: 20,
             )),
-        fontFamily: 'Lato',
+       
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromRGBO(254, 206, 1, 1),
-          primary: const Color.fromRGBO(254, 206, 1, 1),
+          seedColor: const Color.fromRGBO(255, 64, 121, 1),
+          primary: Color.fromRGBO(255, 64, 121, 1),
         ),
         appBarTheme: const AppBarTheme(
           titleTextStyle: TextStyle(

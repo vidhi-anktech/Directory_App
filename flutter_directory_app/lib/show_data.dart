@@ -1,22 +1,20 @@
+import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_directory_app/edit_details_page.dart';
 import 'package:flutter_directory_app/home_page.dart';
-import 'package:flutter_directory_app/login_page.dart';
 import 'package:flutter_directory_app/main.dart';
-import 'package:flutter_directory_app/phone_number_notifier.dart';
+import 'package:flutter_directory_app/profile.dart';
 import 'package:flutter_directory_app/register_details_page.dart';
 import 'package:flutter_directory_app/user-details-page.dart';
-import 'package:flutter_scrolling_fab_animated/flutter_scrolling_fab_animated.dart';
+import 'package:get/utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// import 'animated_seach_bar.dart';
+
 class ShowData extends ConsumerStatefulWidget {
-  // String phoneNo;
-  ShowData({
+  const ShowData({
     super.key,
-    // required this.phoneNo
   });
 
   @override
@@ -26,7 +24,26 @@ class ShowData extends ConsumerStatefulWidget {
 class _ShowDataState extends ConsumerState<ShowData> {
   List _allResults = [];
   List resultList = [];
+  late Stream<dynamic> dataStream;
   var checkNum;
+  bool searchClick = false;
+  var searchCityController = TextEditingController();
+  var selectedCity;
+  bool _toggle = true;
+
+  void _doToggle() => setState(() => _toggle = !_toggle);
+
+  int _currentIndex = 0;
+  _onTap() {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (BuildContext context) => _children[_currentIndex]));
+  }
+
+  final List<Widget> _children = [
+    ShowData(),
+    MyProfile(),
+  ];
+
   check() async {
     var sharedPref = await SharedPreferences.getInstance();
     checkNum = sharedPref.getString(MyAppState.PHONENUM);
@@ -34,25 +51,29 @@ class _ShowDataState extends ConsumerState<ShowData> {
     return checkNum;
   }
 
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   ScrollController _controller = ScrollController();
 
   @override
   void initState() {
-    _searchController.addListener(onSearchChanged);
+    dataStream = FirebaseFirestore.instance
+        .collection("directory-users")
+        .snapshots()
+        .asBroadcastStream();
+    searchController.addListener(onSearchChanged);
     _controller = ScrollController();
     super.initState();
   }
 
   onSearchChanged() {
-    searchResultList();
+    searchResultList(_allResults);
   }
 
-  searchResultList() {
+  searchResultList(List<dynamic> allResults) {
     var showResults = [];
 
-    if (_searchController.text != "") {
-      for (var clientSnapShot in _allResults) {
+    if (searchController.text != "") {
+      for (var clientSnapShot in allResults) {
         var hName = clientSnapShot['hName'].toString().toLowerCase();
         var wName = clientSnapShot['wName'].toString().toLowerCase();
         var hCurrentAddress =
@@ -66,19 +87,17 @@ class _ShowDataState extends ConsumerState<ShowData> {
         var hGotra = clientSnapShot['hGotra'].toString().toLowerCase();
         var wGotra = clientSnapShot['wGotra'].toString().toLowerCase();
 
-        if (hName.contains(_searchController.text.toLowerCase()) ||
-            wName.contains(_searchController.text.toLowerCase()) ||
-            hCurrentAddress.contains(_searchController.text.toLowerCase()) ||
-            wCurrentAddress.contains(_searchController.text.toLowerCase()) ||
-            hOccupation.contains(_searchController.text.toLowerCase()) ||
-            wOccupation.contains(_searchController.text.toLowerCase()) ||
-            hGotra.contains(_searchController.text.toLowerCase()) ||
-            wGotra.contains(_searchController.text.toLowerCase())) {
+        if (hName.contains(searchController.text.toLowerCase()) ||
+            wName.contains(searchController.text.toLowerCase()) ||
+            hCurrentAddress.contains(searchController.text.toLowerCase()) ||
+            wCurrentAddress.contains(searchController.text.toLowerCase()) ||
+            hOccupation.contains(searchController.text.toLowerCase()) ||
+            wOccupation.contains(searchController.text.toLowerCase()) ||
+            hGotra.contains(searchController.text.toLowerCase()) ||
+            wGotra.contains(searchController.text.toLowerCase())) {
           showResults.add(clientSnapShot);
         }
       }
-    } else {
-      showResults = List.from(_allResults);
     }
     setState(() {
       resultList = showResults;
@@ -86,21 +105,13 @@ class _ShowDataState extends ConsumerState<ShowData> {
   }
 
   getClientStream() async {
-    var data = await FirebaseFirestore.instance
-        .collection("directory-users")
-        .orderBy("hName")
-        .get();
-
-    setState(() {
-      _allResults = data.docs;
-    });
-    searchResultList();
+    searchResultList(_allResults);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(onSearchChanged);
-    _searchController.dispose();
+    searchController.removeListener(onSearchChanged);
+    searchController.dispose();
     super.dispose();
   }
 
@@ -110,43 +121,12 @@ class _ShowDataState extends ConsumerState<ShowData> {
     super.didChangeDependencies();
   }
 
-  Stream<List<Map<String, dynamic>>> fetchData() async* {
-    try {
-      var data = await FirebaseFirestore.instance
-          .collection("directory-users")
-          .orderBy("hName")
-          .get();
-
-      var resultList =
-          data.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-      yield resultList;
-    } catch (e) {
-      print('Error fetching data: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     check();
+    print("value of checkNum $checkNum");
+    print("VALUE OF SEARCH CITY CONTROLLER TEXT ${searchCityController.text}");
 
-    void logout() async {
-      var sharedPref = await SharedPreferences.getInstance();
-      sharedPref.setBool(MyAppState.KEYLOGIN, false);
-      final notifier = ref.read(phoneNoProvider.notifier);
-      notifier.setPhoneNo(phoneNo: '');
-      sharedPref.setString(MyAppState.PHONENUM, '');
-      await FirebaseAuth.instance.signOut();
-      Navigator.popUntil(context, (route) => route.isFirst);
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => LoginPage()));
-    }
-
-    const border = OutlineInputBorder(
-      borderSide: BorderSide(
-        color: Color.fromRGBO(225, 225, 225, 1),
-      ),
-      borderRadius: BorderRadius.all(Radius.circular(20)),
-    );
     return WillPopScope(
       onWillPop: () async {
         Navigator.pushReplacement(
@@ -158,454 +138,549 @@ class _ShowDataState extends ConsumerState<ShowData> {
         return true;
       },
       child: Scaffold(
-        appBar: AppBar(
-          iconTheme: const IconThemeData(
-            color: Colors.white,
-          ),
-          title: const Text(
-            "User Directory",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: const Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
-          actions: [
-            IconButton(
-              onPressed: () {
-                logout();
-              },
-              icon: const Icon(Icons.exit_to_app),
-            )
-          ],
-        ),
-        floatingActionButton: ScrollingFabAnimated(
-          icon: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 20,
-          ),
-          text: const Text(
-            'Add',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 15.0,
-                fontWeight: FontWeight.bold),
-          ),
-          onPress: () async {
+        backgroundColor: const Color.fromRGBO(246, 246, 246, 1),
+        floatingActionButton: FloatingActionButton(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          onPressed: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => RegistrationPage()));
           },
-          scrollController: _controller,
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
-          width: 10,
-          animateIcon: true,
-          inverted: false,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
         ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10),
-                    hintText: "Search",
-                    border: border,
-                    enabledBorder: border,
-                    focusedBorder: border,
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection("directory-users")
-                      .orderBy("hName")
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.active) {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        resultList = snapshot.data!.docs;
-                        return ListView.builder(
-                          controller: _controller,
-                          itemCount: resultList.length,
-                          itemBuilder: (context, index) {
-                            var docId = resultList[index].id;
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+              label: 'Profile',
+            )
+          ],
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+            _onTap();
+          },
+        ),
+       
 
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserDetailsPage(
-                                      userData: resultList[index].data()
-                                          as Map<String, dynamic>,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Column(
-                                children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+        appBar: AppBar(
+          title: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: StreamBuilder<dynamic>(
+                stream: dataStream,
+                builder: (context, snapshot) {
+                  return TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        hintText: "Search",
+                        //  border: border,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromRGBO(225, 225, 225, 1),
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Color.fromRGBO(225, 225, 225, 1),
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                        ),
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (searchController) {
+                        _allResults = snapshot.data!.docs;
+                        searchResultList(_allResults);
+                      });
+                }),
+          ),
+        ),
+
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            child: Column(
+              children: [
+                const SizedBox(height: 5,),
+                citySearchBar(),
+                const SizedBox(height: 5,),
+                Expanded(
+                  child: StreamBuilder(
+                    stream: selectedCity != null && selectedCity.isNotEmpty
+                        ? FirebaseFirestore.instance
+                            .collection("directory-users")
+                            .where("hCity", isEqualTo: selectedCity)
+                            .snapshots()
+                        : FirebaseFirestore.instance
+                            .collection("directory-users")
+                            .snapshots(),
+                    builder: (context, snapshot) {
+                      print(
+                          "VALUE OF SELECT CITY CONTROLLER INSIDE BUILDER $selectedCity");
+                      if (snapshot.connectionState == ConnectionState.active) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          if (searchController.text.isEmpty) {
+                            _allResults = snapshot.data!.docs;
+                            print(
+                                "value of checkNum in streambuilder $checkNum");
+                            return ListView.builder(
+                              controller: _controller,
+                              itemCount: _allResults.length,
+                              itemBuilder: (context, index) {
+                                var docId = _allResults[index].id;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserDetailsPage(
+                                          userData: _allResults[index].data()
+                                              as Map<String, dynamic>,
+                                          userId: docId,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Column(
                                     children: [
-                                      Expanded(
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(1.0),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Card(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(15.0),
+                                              ),
                                               child: Column(
                                                 children: [
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 2),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
+                                                  Container(
+                                                    color: Colors.white,
+                                                    child: Column(
                                                       children: [
-                                                        const Text(
-                                                          "Head of Family",
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        GestureDetector(
-                                                          onTap: () async {
-                                                            var sharedPref =
-                                                                await SharedPreferences
-                                                                    .getInstance();
-                                                            var checkNum =
-                                                                sharedPref.getString(
-                                                                    MyAppState
-                                                                        .PHONENUM);
-                                                            if (checkNum == resultList[index]['addedBy'] ||
-                                                                checkNum ==
-                                                                    resultList[
-                                                                            index]
-                                                                        [
-                                                                        'hContact'] ||
-                                                                checkNum ==
-                                                                    resultList[
-                                                                            index]
-                                                                        [
-                                                                        'wContact']) {
-                                                              // ignore: use_build_context_synchronously
-                                                              Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                  builder:
-                                                                      (context) =>
-                                                                          EditDetails(
-                                                                    userData: resultList[index]
-                                                                            .data()
-                                                                        as Map<
-                                                                            String,
-                                                                            dynamic>,
-                                                                    userId:
-                                                                        docId,
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            }
-                                                          },
-                                                          child: FutureBuilder<
-                                                              dynamic>(
-                                                            future: check(),
-                                                            builder: (context,
-                                                                snapshot) {
-                                                              var checkNum =
-                                                                  snapshot.data;
-                                                              
-                                                              return (checkNum == resultList[index]['addedBy'] ||
-                                                                      checkNum ==
-                                                                          resultList[index]
-                                                                              [
-                                                                              'hContact'] ||
-                                                                      checkNum ==
-                                                                          resultList[index]
-                                                                              [
-                                                                              'wContact'])
-                                                                  ? const Icon(
-                                                                      Icons
-                                                                          .edit_note,
-                                                                      color: Color
-                                                                          .fromRGBO(
-                                                                              5,
-                                                                              111,
-                                                                              146,
-                                                                              1),
-                                                                      size: 25,
-                                                                    )
-                                                                  : Container(); // Empty container when condition is false
-                                                            },
-                                                          ),
-                                                        )
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  ListTile(
-                                                    leading: CircleAvatar(
-                                                      radius: 30,
-                                                      backgroundImage:
-                                                          NetworkImage(
-                                                        resultList[index][
-                                                                "hProfilePic"] ??
-                                                            '',
-                                                      ),
-                                                    ),
-                                                    title: Text(
-                                                      resultList[index]
-                                                              ["hName"] +
-                                                          " " +
-                                                          resultList[index]
-                                                              ["hGotra"] +
-                                                          " ",
-                                                      style: const TextStyle(
-                                                        fontSize: 15,
-                                                        fontWeight: FontWeight.w600
-                                                      ),
-                                                    ),
-                                                    subtitle: Column(
-                                                      children: [
-                                                        Row(
-                                                          children: [
-                                                            const Icon(
-                                                              Icons.work,
-                                                              size: 15,
-                                                              color: Color
-                                                                  .fromRGBO(
-                                                                      5,
-                                                                      111,
-                                                                      146,
-                                                                      1),
-                                                            ),
-                                                            const SizedBox(
-                                                                width: 5),
-                                                            Text(
-                                                              "${resultList[index]['hOccupation']}",
-                                                              style:
-                                                                  const TextStyle(
-                                                                fontSize: 12,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        Row(
-                                                          children: [
-                                                            const Icon(
-                                                              Icons.phone,
-                                                              size: 15,
-                                                              color: Color
-                                                                  .fromRGBO(
-                                                                      5,
-                                                                      111,
-                                                                      146,
-                                                                      1),
-                                                            ),
-                                                            const SizedBox(
-                                                                width: 5),
-                                                            Text(
-                                                              "${resultList[index]['hContact']}",
-                                                              style:
-                                                                  const TextStyle(
-                                                                fontSize: 12,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  if (resultList[index]
-                                                              ["wName"] !=
-                                                          null ||
-                                                      resultList[index]
-                                                              ["wGotra"] !=
-                                                          null ||
-                                                      resultList[index]
-                                                              ["wOccupation"] !=
-                                                          null ||
-                                                      resultList[index]
-                                                              ["wContact"] !=
-                                                          null) ...[
-                                                    Column(
-                                                      children: [
-                                                        const Padding(
-                                                          padding:  EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                                                          child:  Row(
-                                                            children: [
-                                                             Text(
-                                                                "Spouse",
-                                                                style: TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight.bold,
-                                                                ),),
-                                                            ],
-                                                          ),
-                                                        ),
                                                         ListTile(
                                                           leading: CircleAvatar(
-                                                            radius: 30,
+                                                            radius: 25,
                                                             backgroundImage:
                                                                 NetworkImage(
-                                                              resultList[index][
-                                                                      "wProfilePic"] ??
+                                                              _allResults[index]
+                                                                      [
+                                                                      "hProfilePic"] ??
                                                                   '',
                                                             ),
                                                           ),
                                                           title: Text(
-                                                            resultList[index]
-                                                                ['wName'] 
-                                                                + " " + resultList[index]['wGotra']
-                                                                ,
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 15,
-                                                              fontWeight: FontWeight.bold
-                                                            ),
+                                                            _allResults[index]
+                                                                    ["hName"] +
+                                                                " " +
+                                                                _allResults[
+                                                                        index]
+                                                                    ["hGotra"] +
+                                                                " ",
+                                                            style: const TextStyle(
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600),
                                                           ),
                                                           subtitle: Column(
                                                             children: [
-                                                              if (resultList[
-                                                                          index]
-                                                                      [
-                                                                      "wOccupation"] !=
-                                                                  null)
-                                                                Row(
-                                                                  children: [
-                                                                    const Icon(
-                                                                      Icons
-                                                                          .work,
-                                                                      size: 15,
-                                                                      color: Color
-                                                                          .fromRGBO(
-                                                                              5,
-                                                                              111,
-                                                                              146,
-                                                                              1),
+                                                              Row(
+                                                                children: [
+                                                                  Text(
+                                                                    "${_allResults[index]['hContact']}",
+                                                                    style:
+                                                                        const TextStyle(
+                                                                      fontSize:
+                                                                          12,
                                                                     ),
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            5),
-                                                                    Text(
-                                                                      "${resultList[index]['wOccupation']}",
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            12,
-                                                                      ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              Row(
+                                                                children: [
+                                                                  Text(
+                                                                    "${_allResults[index]['hCity']}",
+                                                                    style:
+                                                                        const TextStyle(
+                                                                      fontSize:
+                                                                          12,
                                                                     ),
-                                                                  ],
-                                                                ),
-                                                              if (resultList[
-                                                                          index]
-                                                                      [
-                                                                      "wContact"] !=
-                                                                  null)
-                                                                Row(
-                                                                  children: [
-                                                                    const Icon(
-                                                                      Icons
-                                                                          .phone,
-                                                                      size: 15,
-                                                                      color: Color
-                                                                          .fromRGBO(
-                                                                              5,
-                                                                              111,
-                                                                              146,
-                                                                              1),
-                                                                    ),
-                                                                    const SizedBox(
-                                                                        width:
-                                                                            5),
-                                                                    Text(
-                                                                      "${resultList[index]['wContact']}",
-                                                                      style:
-                                                                          const TextStyle(
-                                                                        fontSize:
-                                                                            12,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
+                                                                  ),
+                                                                ],
+                                                              ),
                                                             ],
                                                           ),
                                                         ),
-                                                      ],
-                                                    )
-                                                  ] else
-                                                    Container(),
-                                                  const Padding(
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 2),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment.end,
-                                                      children: [
-                                                        Text(
-                                                          "more",
-                                                          style: TextStyle(
-                                                              color: Color
-                                                                  .fromARGB(
-                                                                      255,
-                                                                      24,
-                                                                      99,
-                                                                      26),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600),
-                                                        ),
-                                                        Icon(
-                                                          Icons.double_arrow,
-                                                          size: 15,
-                                                          color: Color.fromARGB(
-                                                              255, 24, 99, 26),
-                                                        ),
+                                                        if (_allResults[index]
+                                                                    ["wName"] !=
+                                                                null &&
+                                                            _allResults[index][
+                                                                    "wGotra"] !=
+                                                                null &&
+                                                            _allResults[index][
+                                                                    "wContact"] !=
+                                                                null) ...[
+                                                          Column(
+                                                            children: [
+                                                              const Divider(
+                                                                thickness: 0.4,
+                                                              ),
+                                                              ListTile(
+                                                                visualDensity: VisualDensity(vertical: -4),
+                                                                leading:
+                                                                    CircleAvatar(
+                                                                  radius: 25,
+                                                                  backgroundImage:
+                                                                      NetworkImage(
+                                                                    _allResults[index]
+                                                                            [
+                                                                            "wProfilePic"] ??
+                                                                        '',
+                                                                  ),
+                                                                ),
+                                                                title: Text(
+                                                                  _allResults[index]
+                                                                          [
+                                                                          'wName'] +
+                                                                      " " +
+                                                                      _allResults[
+                                                                              index]
+                                                                          [
+                                                                          'wGotra'],
+                                                                  style: const TextStyle(
+                                                                      fontSize:
+                                                                          15,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
+                                                                ),
+                                                                subtitle:
+                                                                    Column(
+                                                                  children: [
+                                                                    if (_allResults[index]
+                                                                            [
+                                                                            "wContact"] !=
+                                                                        null)
+                                                                      Row(
+                                                                        children: [
+                                                                          Text(
+                                                                            "${_allResults[index]['wContact']}",
+                                                                            style:
+                                                                                const TextStyle(
+                                                                              fontSize: 12,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          )
+                                                        ] else
+                                                          Container(),
                                                       ],
                                                     ),
-                                                  ),
-                                                  const Divider(
-                                                    thickness: 0.4,
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height:5)
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            return ListView.builder(
+                              controller: _controller,
+                              itemCount: resultList.length,
+                              itemBuilder: (context, index) {
+                                var docId = resultList[index].id;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserDetailsPage(
+                                            userData: resultList[index].data()
+                                                as Map<String, dynamic>,
+                                            userId: docId),
+                                      ),
+                                    );
+                                  },
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(1.0),
+                                                  child: Column(
+                                                    children: [
+                                                      ListTile(
+                                                        leading: CircleAvatar(
+                                                          radius: 25,
+                                                          backgroundImage:
+                                                              NetworkImage(
+                                                            resultList[index][
+                                                                    "hProfilePic"] ??
+                                                                '',
+                                                          ),
+                                                        ),
+                                                        title: Text(
+                                                          resultList[index]
+                                                                  ["hName"] +
+                                                              " " +
+                                                              resultList[index]
+                                                                  ["hGotra"] +
+                                                              " ",
+                                                          style: const TextStyle(
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600),
+                                                        ),
+                                                        subtitle: Column(
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  "${resultList[index]['hOccupation']}",
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    fontSize:
+                                                                        12,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  "${resultList[index]['hContact']}",
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    fontSize:
+                                                                        12,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      if (resultList[index]
+                                                                  ["wName"] !=
+                                                              null &&
+                                                          resultList[index]
+                                                                  ["wGotra"] !=
+                                                              null &&
+                                                          resultList[index][
+                                                                  "wOccupation"] !=
+                                                              null &&
+                                                          resultList[index][
+                                                                  "wContact"] !=
+                                                              null) ...[
+                                                        Column(
+                                                          children: [
+                                                            ListTile(
+                                                              leading:
+                                                                  CircleAvatar(
+                                                                radius: 25,
+                                                                backgroundImage:
+                                                                    NetworkImage(
+                                                                  resultList[index]
+                                                                          [
+                                                                          "wProfilePic"] ??
+                                                                      '',
+                                                                ),
+                                                              ),
+                                                              title: Text(
+                                                                resultList[index]
+                                                                        [
+                                                                        'wName'] +
+                                                                    " " +
+                                                                    resultList[
+                                                                            index]
+                                                                        [
+                                                                        'wGotra'],
+                                                                style: const TextStyle(
+                                                                    fontSize:
+                                                                        15,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                              subtitle: Column(
+                                                                children: [
+                                                                  // if (resultList[
+                                                                  //             index]
+                                                                  //         [
+                                                                  //         "wOccupation"] !=
+                                                                  //     null)
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        "${resultList[index]['wOccupation']}",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  // if (resultList[
+                                                                  //             index]
+                                                                  //         [
+                                                                  //         "wContact"] !=
+                                                                  //     null)
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        "${resultList[index]['wContact']}",
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              12,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ] else
+                                                        Container(),
+                                                      const Divider(
+                                                        thickness: 0.4,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             );
-                          },
-                        );
+                          }
+                        } else {
+                          return const Text("No data");
+                        }
                       } else {
-                        return const Text("No data");
+                        return const Center(child: CircularProgressIndicator());
                       }
-                    } else {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                  },
+                    },
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height:5),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget citySearchBar() {
+    return Stack(children: [
+      GestureDetector(
+        onTap: _doToggle,
+        child: const SizedBox(
+            height: kToolbarHeight * 0.8,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  size: 25.0,
+                ),
+                SizedBox(
+                  width: 10.0,
+                ),
+                Text(
+                  "Tap to select your city",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            )),
+      ),
+      AnimatedContainer(
+        width: _toggle ? 0 : MediaQuery.of(context).size.width,
+        transform: Matrix4.translationValues(
+            _toggle ? MediaQuery.of(context).size.width : 0, 0, 0),
+        duration: const Duration(seconds: 1),
+        height: kToolbarHeight * 0.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(5.0),
+          border: Border.all(
+            width: 0.5,
+            color: Color.fromRGBO(225, 225, 225, 1),
+         
+          ),
+        ),
+        child: TextField(
+          controller: searchCityController,
+          textInputAction: TextInputAction.search,
+          decoration: InputDecoration(
+              contentPadding: EdgeInsets.zero,
+              label: const Text("Enter Your City"),
+              labelStyle:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+              prefixIcon: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 1),
+                  opacity: _toggle ? 0 : 1,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      size: 20,
+                    ),
+                    onPressed: _doToggle,
+                  )),
+              border: InputBorder.none),
+               onChanged: (val) {
+                            setState(() {
+                              selectedCity = searchCityController.text.trim().capitalizeFirst;
+                            });
+                          },
+        ),
+      )
+    ]);
   }
 }

@@ -10,7 +10,6 @@ PhoneNumber copyWith({String? phoneNum}){
 }
 
 class PhoneNoNotifier extends StateNotifier<PhoneNumber> {
-  // final String phoneNo;
   PhoneNoNotifier(super.state);
 
   void setPhoneNo({String? phoneNo}) {
@@ -18,7 +17,7 @@ class PhoneNoNotifier extends StateNotifier<PhoneNumber> {
   }
 }
 
-final phoneNoProvider = StateNotifierProvider<PhoneNoNotifier, PhoneNumber>((ref) {
+final phoneNoProvider = StateNotifierProvider<PhoneNoNotifier, PhoneNumber>((ref){
   return PhoneNoNotifier(
     PhoneNumber(phoneNum: "")
   );

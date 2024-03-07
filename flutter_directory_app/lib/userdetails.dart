@@ -74,7 +74,8 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
   int _currentIndex = 0;
   _onTap() {
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (BuildContext context) => _children[_currentIndex]));
+        builder: (BuildContext context) =>
+            _children[_currentIndex]));
   }
 
   final List<Widget> _children = [
@@ -85,7 +86,8 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+      ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -99,26 +101,26 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Profile',
-          )
-        ],
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          _onTap();
-        },
-      ),
+   bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+              label: 'Profile',
+            )
+          ],
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+            _onTap();
+          },
+        ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
         progressIndicator: LoadingAnimationWidget.twistingDots(
@@ -169,17 +171,20 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                     _buildWPersonDetails("Wife", widget.userData),
                   ],
                 ),
-                const SizedBox(height: 10),
+                 const SizedBox(height: 10),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(flex: 3, child: _buildCancelButton()),
-                      const SizedBox(
-                        width: 15,
-                      ),
-                      Expanded(flex: 3, child: _buildUpdateNowButton()),
+                      Expanded(
+                        flex: 3,
+                        child: _buildCancelButton()
+                        ),
+                        const SizedBox(width: 15,),
+                      Expanded(
+                        flex: 3,
+                        child: _buildUpdateNowButton()),
                     ]),
-                const SizedBox(height: 40)
+                    const SizedBox(height: 40)
               ],
             ),
           ),
@@ -408,10 +413,11 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                     "wCurrentAddress",
                     userData["wCurrentAddress"],
                   ),
-                 
-                  _buildContactTextField( "$person Contact Number",
+                  _buildTextField(
+                    "$person Contact Number",
                     "wContact",
-                  wContactEditController),
+                    userData["wContact"],
+                  ),
                   _buildTextField(
                     "$person Birth Place",
                     "wBirthPlace",
@@ -500,8 +506,8 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                       spouseDistrictController, 'wDistrict', false),
                   _buildWifeEmptyTextField(
                       'Spouse City', spouseCityController, 'wCity', false),
-                  _buildContactTextField('Spouse Contact',
-                       'wContact', spouseContactController),
+                  _buildWifeEmptyTextField('Spouse Contact',
+                      spouseContactController, 'wContact', false),
                   _buildWifeEmptyTextField('Spouse Birthplace',
                       spouseBirthPlaceController, 'wBirthPlace', false),
                   _buildWifeEmptyTextField('Spouse CurrentAddress',
@@ -515,65 +521,6 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
     }
   }
 
-
-   Widget _buildContactTextField(String label, String field,  TextEditingController controller) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: controller,
-          // initialValue: initialValue ?? '',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: Color.fromRGBO(0, 0, 0, 1),
-          ),
-          decoration: InputDecoration(
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-            labelText: label,
-            labelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: Color.fromRGBO(0, 0, 0, 1)),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 168, 162, 162),
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 168, 162, 162),
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          onChanged: (value) {
-            String hEditedContact = hContactEditController.text.trim();
-            String wEditedContact = wContactEditController.text.trim();
-            String spouseContact = spouseContactController.text.trim();
-            hEditedContact = "+91$hEditedContact";
-            wEditedContact = "+91$wEditedContact";
-            spouseContact = "+91$spouseContact";
-            
-              if(controller == hContactEditController){
-                editedData[field] = hEditedContact;
-              }else if(controller == wContactEditController){
-                editedData[field] = wEditedContact;
-              }else if(controller == spouseContactController){
-                editedData[field] = spouseContact;
-              }
-            
-          },
-        ),
-        const SizedBox(
-          height: 10,
-        )
-      ],
-    );
-  }
-
-
   _buildWifeEmptyTextField(String label, TextEditingController controller,
       String field, bool validate) {
     return Column(
@@ -585,15 +532,12 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
             enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 168, 162, 162),
-              ),
+              borderSide:
+                   const BorderSide(color: Color.fromARGB(255, 168, 162, 162),),
               borderRadius: BorderRadius.circular(10),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 168, 162, 162),
-              ),
+              borderSide: const BorderSide(color: Color.fromARGB(255, 168, 162, 162),),
               borderRadius: BorderRadius.circular(10),
             ),
             labelText: label,
@@ -608,10 +552,9 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
             ),
           ),
           onChanged: (value) {
-            editedData[field] = value.capitalize ?? "";
-            // if (validateForm()) {
-            //   editedData[field] = value.capitalize ?? "";
-            // }
+            if (validateForm()) {
+              editedData[field] = value.capitalize ?? "";
+            }
           },
         ),
         const SizedBox(height: 10)
@@ -638,15 +581,13 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                 fontWeight: FontWeight.w400,
                 color: Color.fromRGBO(0, 0, 0, 1)),
             enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 168, 162, 162),
-              ),
+              borderSide:
+                 const BorderSide(color: Color.fromARGB(255, 168, 162, 162),),
               borderRadius: BorderRadius.circular(10),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Color.fromARGB(255, 168, 162, 162),
-              ),
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 168, 162, 162),),
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -683,13 +624,16 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
         Navigator.pop(context);
       },
       style: ElevatedButton.styleFrom(
-          side: BorderSide(
-              color: Theme.of(context).colorScheme.primary, width: 1),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.primary, 
+          width: 1
           ),
-          backgroundColor: Colors.transparent,
-          elevation: 0),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5)),
+        ),
+         backgroundColor:  Colors.transparent,
+         elevation: 0
+      ),
       child: const Text(
         "Cancel",
         style: TextStyle(
@@ -713,10 +657,8 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
             .update(editedData)
             .then((value) => {
                   print("HURRAAAYYY! DATA UPDATED SUCCESSFULLY"),
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ShowData())),
+               Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const ShowData())),
                 });
       },
       style: ElevatedButton.styleFrom(

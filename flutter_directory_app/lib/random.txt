@@ -1,561 +1,1242 @@
-import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_directory_app/main.dart';
-import 'package:get/utils.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
-
-class EditDetails extends ConsumerStatefulWidget {
-  final Map<String, dynamic> userData;
-  final String userId;
-  EditDetails({
+class ShowData extends ConsumerStatefulWidget {
+  ShowData({
     super.key,
-    required this.userData,
-    required this.userId,
   });
 
   @override
-  ConsumerState<EditDetails> createState() => _EditDetailsState();
+  ConsumerState<ShowData> createState() => _ShowDataState();
 }
 
-class _EditDetailsState extends ConsumerState<EditDetails> {
-  final hNameEditController = TextEditingController();
-  final hGotraEditController = TextEditingController();
-  final hOccupationEditController = TextEditingController();
-  final hAddressEditController = TextEditingController();
-  final hContactEditController = TextEditingController();
-  final hBirthPlaceEditController = TextEditingController();
-  final wNameEditController = TextEditingController();
-  final wGotraEditController = TextEditingController();
-  final wOccupationEditController = TextEditingController();
-  final wAddressEditController = TextEditingController();
-  final wContactEditController = TextEditingController();
-  final wBirthPlaceEditController = TextEditingController();
-  final spouseNameController = TextEditingController();
-  final spouseGotraController = TextEditingController();
-  final spouseContactController = TextEditingController();
-  final spouseOccupationController = TextEditingController();
-  final spouseCurrentAddressController = TextEditingController();
-  final spouseBirthPlaceController = TextEditingController();
-  File? headEditedProfilePic;
-  File? wifeEditedProfilePic;
-  bool _loading = false;
-  Map<String, dynamic> editedData = {};
-  File? wifeProfilePic;
+class _ShowDataState extends ConsumerState<ShowData> {
+  List _allResults = [];
+  List resultList = [];
+  var checkNum;
+  check() async {
+    var sharedPref = await SharedPreferences.getInstance();
+    checkNum = sharedPref.getString(MyAppState.PHONENUM);
+    print("VALUE OF CHECK NUM IN CHECK() $checkNum");
+    return checkNum;
+  }
+
+  final TextEditingController _searchController = TextEditingController();
+  ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    _searchController.addListener(onSearchChanged);
+    _controller = ScrollController();
+    super.initState();
+  }
+
+  onSearchChanged() {
+    searchResultList();
+  }
+
+  searchResultList() {
+    var showResults = [];
+
+    if (_searchController.text != "") {
+      for (var clientSnapShot in _allResults) {
+        var hName = clientSnapShot['hName'].toString().toLowerCase();
+        var wName = clientSnapShot['wName'].toString().toLowerCase();
+        var hCurrentAddress =
+            clientSnapShot['hCurrentAddress'].toString().toLowerCase();
+        var wCurrentAddress =
+            clientSnapShot['wCurrentAddress'].toString().toLowerCase();
+        var hOccupation =
+            clientSnapShot['hOccupation'].toString().toLowerCase();
+        var wOccupation =
+            clientSnapShot['wOccupation'].toString().toLowerCase();
+        var hGotra = clientSnapShot['hGotra'].toString().toLowerCase();
+        var wGotra = clientSnapShot['wGotra'].toString().toLowerCase();
+
+        if (hName.contains(_searchController.text.toLowerCase()) ||
+            wName.contains(_searchController.text.toLowerCase()) ||
+            hCurrentAddress.contains(_searchController.text.toLowerCase()) ||
+            wCurrentAddress.contains(_searchController.text.toLowerCase()) ||
+            hOccupation.contains(_searchController.text.toLowerCase()) ||
+            wOccupation.contains(_searchController.text.toLowerCase()) ||
+            hGotra.contains(_searchController.text.toLowerCase()) ||
+            wGotra.contains(_searchController.text.toLowerCase())) {
+          showResults.add(clientSnapShot);
+        }
+      }
+    } else {
+      showResults = List.from(_allResults);
+    }
+    setState(() {
+      resultList = showResults;
+    });
+  }
+
+  getClientStream() async {
+    var data = await FirebaseFirestore.instance
+        .collection("directory-users")
+        .orderBy("hName")
+        .get();
+
+    setState(() {
+      _allResults = data.docs;
+    });
+    searchResultList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    getClientStream();
+    super.didChangeDependencies();
+  }
+
+  Stream<List<Map<String, dynamic>>> fetchData() async* {
+    try {
+      var data = await FirebaseFirestore.instance
+          .collection("directory-users")
+          .orderBy("hName")
+          .get();
+
+      var resultList =
+          data.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      yield resultList;
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    hello();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit Details"),
-      ),
-      body: ModalProgressHUD(
-        inAsyncCall: _loading,
-        progressIndicator: LoadingAnimationWidget.twistingDots(
-          leftDotColor: const Color.fromRGBO(5, 111, 146, 1),
-          rightDotColor: Theme.of(context).colorScheme.primary,
-          size: 40,
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          children: [
-                            _buildHPersonDetails("Head", widget.userData),
-                            _buildWPersonDetails("Wife", widget.userData),
-                          ],
-                        ),
-                      ),
-                      _buildUpdateNowButton(),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+    check();
 
-  Widget _buildHPersonDetails(String person, Map<String, dynamic> userData) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Row(
-              children: [
-                Text(
-                  "Householder",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+      child: Scaffold(
+        
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                    hintText: "Search",
+                    border: border,
+                    enabledBorder: border,
+                    focusedBorder: border,
+                    prefixIcon: Icon(Icons.search),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () async {
-                final hSelectedImage =
-                    await ImagePicker().pickImage(source: ImageSource.gallery);
-                if (hSelectedImage != null) {
-                  File editedFile = File(hSelectedImage.path);
-                  setState(() {
-                    headEditedProfilePic = editedFile;
-                  });
-                  print("Image selected");
-                } else {
-                  print("No image selected");
-                }
-              },
-              child: Container(
-                height: 150,
-                width: 150,
-                child: headEditedProfilePic == null
-                    ? Image.network(widget.userData['hProfilePic'])
-                    : Image.file(headEditedProfilePic!),
               ),
-            ),
-            if (headEditedProfilePic != null) ...[
-              IconButton(
-                  onPressed: () {
-                    _cropImage();
+              Expanded(
+                child: StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection("directory-users")
+                      .orderBy("hName")
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        resultList = snapshot.data!.docs;
+                        return ListView.builder(
+                          controller: _controller,
+                          itemCount: resultList.length,
+                          itemBuilder: (context, index) {
+                            var docId = resultList[index].id;
+
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserDetailsPage(
+                                      userData: resultList[index].data()
+                                          as Map<String, dynamic>,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(1.0),
+                                              child: Column(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 2),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        const Text(
+                                                          "Head of Family",
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () async {
+                                                            var sharedPref =
+                                                                await SharedPreferences
+                                                                    .getInstance();
+                                                            var checkNum =
+                                                                sharedPref.getString(
+                                                                    MyAppState
+                                                                        .PHONENUM);
+                                                            if (checkNum == resultList[index]['addedBy'] ||
+                                                                checkNum ==
+                                                                    resultList[
+                                                                            index]
+                                                                        [
+                                                                        'hContact'] ||
+                                                                checkNum ==
+                                                                    resultList[
+                                                                            index]
+                                                                        [
+                                                                        'wContact']) {
+                                                              // ignore: use_build_context_synchronously
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          EditDetails(
+                                                                    userData: resultList[index]
+                                                                            .data()
+                                                                        as Map<
+                                                                            String,
+                                                                            dynamic>,
+                                                                    userId:
+                                                                        docId,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }
+                                                          },
+                                                          child: FutureBuilder<
+                                                              dynamic>(
+                                                            future: check(),
+                                                            builder: (context,
+                                                                snapshot) {
+                                                              var checkNum =
+                                                                  snapshot.data;
+
+                                                              return (checkNum == resultList[index]['addedBy'] ||
+                                                                      checkNum ==
+                                                                          resultList[index]
+                                                                              [
+                                                                              'hContact'] ||
+                                                                      checkNum ==
+                                                                          resultList[index]
+                                                                              [
+                                                                              'wContact'])
+                                                                  ? const Icon(
+                                                                      Icons
+                                                                          .edit_note,
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              5,
+                                                                              111,
+                                                                              146,
+                                                                              1),
+                                                                      size: 25,
+                                                                    )
+                                                                  : Container(); // Empty container when condition is false
+                                                            },
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  ListTile(
+                                                    leading: CircleAvatar(
+                                                      radius: 30,
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                        resultList[index][
+                                                                "hProfilePic"] ??
+                                                            '',
+                                                      ),
+                                                    ),
+                                                    title: Text(
+                                                      resultList[index]
+                                                              ["hName"] +
+                                                          " " +
+                                                          resultList[index]
+                                                              ["hGotra"] +
+                                                          " ",
+                                                      style: const TextStyle(
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
+                                                    subtitle: Column(
+                                                      children: [
+                                                        Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons.work,
+                                                              size: 15,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      5,
+                                                                      111,
+                                                                      146,
+                                                                      1),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 5),
+                                                            Text(
+                                                              "${resultList[index]['hOccupation']}",
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons.phone,
+                                                              size: 15,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      5,
+                                                                      111,
+                                                                      146,
+                                                                      1),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 5),
+                                                            Text(
+                                                              "${resultList[index]['hContact']}",
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (resultList[index]
+                                                              ["wName"] !=
+                                                          null ||
+                                                      resultList[index]
+                                                              ["wGotra"] !=
+                                                          null ||
+                                                      resultList[index]
+                                                              ["wOccupation"] !=
+                                                          null ||
+                                                      resultList[index]
+                                                              ["wContact"] !=
+                                                          null) ...[
+                                                    Column(
+                                                      children: [
+                                                        const Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal:
+                                                                      10,
+                                                                  vertical: 2),
+                                                          child: Row(
+                                                            children: [
+                                                              Text(
+                                                                "Spouse",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        ListTile(
+                                                          leading: CircleAvatar(
+                                                            radius: 30,
+                                                            backgroundImage:
+                                                                NetworkImage(
+                                                              resultList[index][
+                                                                      "wProfilePic"] ??
+                                                                  '',
+                                                            ),
+                                                          ),
+                                                          title: Text(
+                                                            resultList[index]
+                                                                    ['wName'] +
+                                                                " " +
+                                                                resultList[
+                                                                        index]
+                                                                    ['wGotra'],
+                                                            style: const TextStyle(
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                          subtitle: Column(
+                                                            children: [
+                                                              if (resultList[
+                                                                          index]
+                                                                      [
+                                                                      "wOccupation"] !=
+                                                                  null)
+                                                                Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .work,
+                                                                      size: 15,
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              5,
+                                                                              111,
+                                                                              146,
+                                                                              1),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            5),
+                                                                    Text(
+                                                                      "${resultList[index]['wOccupation']}",
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              if (resultList[
+                                                                          index]
+                                                                      [
+                                                                      "wContact"] !=
+                                                                  null)
+                                                                Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .phone,
+                                                                      size: 15,
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              5,
+                                                                              111,
+                                                                              146,
+                                                                              1),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            5),
+                                                                    Text(
+                                                                      "${resultList[index]['wContact']}",
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ] else
+                                                    Container(),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 10,
+                                                            vertical: 2),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Text(
+                                                          "more",
+                                                          style: TextStyle(
+                                                              color: Color
+                                                                  .fromARGB(
+                                                                      255,
+                                                                      24,
+                                                                      99,
+                                                                      26),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600),
+                                                        ),
+                                                        Icon(
+                                                          Icons.double_arrow,
+                                                          size: 15,
+                                                          color: Color.fromARGB(
+                                                              255, 24, 99, 26),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  const Divider(
+                                                    thickness: 0.4,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return const Text("No data");
+                      }
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
                   },
-                  icon: const Icon(Icons.crop))
-            ],
-            _buildTextField(
-              "$person Name",
-              "hName",
-              userData["hName"],
-            ),
-            _buildTextField(
-              "$person Gotra",
-              "hGotra",
-              userData["hGotra"],
-            ),
-            _buildTextField(
-              "$person Occupation",
-              "hOccupation",
-              userData["hOccupation"],
-            ),
-            _buildTextField(
-              "$person Current Address",
-              "hCurrentAddress",
-              userData["hCurrentAddress"],
-            ),
-            _buildTextField(
-              "$person Contact Number",
-              "hContact",
-              userData["hContact"],
-            ),
-            _buildTextField(
-              "$person Birth Place",
-              "hBirthPlace",
-              userData["hBirthPlace"],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWPersonDetails(String person, Map<String, dynamic> userData) {
-    if (userData["wName"] != null ||
-        userData["wGotra"] != null ||
-        userData["wOccupation"] != null ||
-        userData["wContact"] != null ||
-        userData['wBirthPlace'] != null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const Row(
-                children: [
-                  Text(
-                    "Spouse",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () async {
-                  final wSelectedImage = await ImagePicker()
-                      .pickImage(source: ImageSource.gallery);
-                  if (wSelectedImage != null) {
-                    File wEditedFile = File(wSelectedImage.path);
-                    setState(() {
-                      wifeEditedProfilePic = wEditedFile;
-                    });
-                    print("Wife Image selected");
-                  } else {
-                    print("No Wife image selected");
-                  }
-                },
-                child: Container(
-                  height: 150,
-                  width: 150,
-                  child: wifeEditedProfilePic == null
-                      ? Image.network(widget.userData['wProfilePic'])
-                      : Image.file(wifeEditedProfilePic!),
                 ),
-              ),
-              if (wifeEditedProfilePic != null) ...[
-                IconButton(
-                    onPressed: () {
-                      _wEditedCropImage();
-                    },
-                    icon: const Icon(Icons.crop))
-              ],
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTextField(
-                    "$person Name",
-                    "wName",
-                    userData["wName"],
-                  ),
-                  _buildTextField(
-                    "$person Gotra",
-                    "wGotra",
-                    userData["wGotra"],
-                  ),
-                  _buildTextField(
-                    "$person Occupation",
-                    "wOccupation",
-                    userData["wOccupation"],
-                  ),
-                  _buildTextField(
-                    "$person Current Address",
-                    "wCurrentAddress",
-                    userData["wCurrentAddress"],
-                  ),
-                  _buildTextField(
-                    "$person Contact Number",
-                    "wContact",
-                    userData["wContact"],
-                  ),
-                  _buildTextField(
-                    "$person Birth Place",
-                    "wBirthPlace",
-                    userData["wBirthPlace"],
-                  ),
-                ],
               ),
             ],
           ),
         ),
-      );
-    } else {
-      return Card(
-        elevation: 4.0,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Row(
-                children: [
-                  Text(
-                    "Spouse",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () async {
-                  final wSelectedImage = await ImagePicker()
-                      .pickImage(source: ImageSource.gallery);
-                  if (wSelectedImage != null) {
-                    File wConvertedFile = File(wSelectedImage.path);
-                    setState(() {
-                      wifeProfilePic = wConvertedFile;
-                    });
-                    print("Image selected");
-                  } else {
-                    print("No image selected");
-                  }
-                },
-                child: Container(
-                  height: 150,
-                  width: 150,
-                  child: wifeProfilePic == null
-                      ? Image.asset('assets/images/user.png')
-                      : Image.file(wifeProfilePic!),
-                ),
-              ),
-              if (wifeProfilePic != null) ...[
-                IconButton(
-                    onPressed: () {
-                      _wCropImage();
-                    },
-                    icon: const Icon(Icons.crop))
-              ],
-              const SizedBox(height: 5),
-              const Center(
-                child: Text(
-                  'Tap to select your profile photo',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              _buildWifeEmptyTextField(
-                  'Spouse Name', spouseNameController, 'wName'),
-              _buildWifeEmptyTextField(
-                  'Spouse Gotra', spouseGotraController, 'wGotra'),
-              _buildWifeEmptyTextField('Spouse Occupation',
-                  spouseOccupationController, 'wOccupation'),
-              _buildWifeEmptyTextField(
-                  'Spouse Contact', spouseContactController, 'wContact'),
-              _buildWifeEmptyTextField('Spouse Birthplace',
-                  spouseBirthPlaceController, 'wBirthPlace'),
-              _buildWifeEmptyTextField('Spouse CurrentAddress',
-                  spouseCurrentAddressController, 'wCurrentAddress'),
-            ],
-          ),
-        ),
-      );
-    }
-  }
-
-  _buildWifeEmptyTextField(
-      String label, TextEditingController controller, String field) {
-    return TextField(
-      cursorColor: Colors.black,
-      controller: controller,
-      decoration: InputDecoration(
-        border: const UnderlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(1.0))),
-        hintText: label,
-        hintStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        // errorText: validate ? 'Required' : null,
-        errorStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      onChanged: (value) {
-        editedData[field] = value.capitalize;
-      },
-    );
-  }
-
-  // Widget _buildProfilePicImage(String? imageUrl, File? editedFile) {
-  //   return imageUrl != null
-  //       ? Image.network(imageUrl)
-  //       : editedFile != null
-  //           ? Image.file(editedFile)
-  //           : Image.asset('assets/images/user.png'); // Default image
-  // }
-
-  Widget _buildTextField(String label, String field, String? initialValue) {
-    return TextFormField(
-      initialValue: initialValue ?? '',
-      decoration: InputDecoration(labelText: label),
-      onChanged: (value) {
-        editedData[field] = value.capitalize;
-      },
-    );
-  }
-
-  Future<String> uploadFile(File file, String folder) async {
-    try {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child("Profilepictures")
-          .child(folder)
-          .child(Uuid().v1());
-      final uploadTask = ref.putFile(file);
-      final taskSnapshot = await uploadTask;
-      return await taskSnapshot.ref.getDownloadURL();
-    } catch (error) {
-      print("Error uploading file: $error");
-      throw error;
-    }
-  }
-
-  Widget _buildUpdateNowButton() {
-    return ElevatedButton(
-      onPressed: () async {
-        setState(() {
-          _loading = true;
-        });
-        await _uploadAndSaveImage();
-        await FirebaseFirestore.instance
-            .collection("directory-users")
-            .doc(widget.userId)
-            .update(editedData)
-            .then((value) => {
-                  print("HURRAAAYYY! DATA UPDATED SUCCESSFULLY"),
-                  Navigator.pop(context),
-                });
-      },
-      style: ElevatedButton.styleFrom(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        backgroundColor: const Color.fromRGBO(5, 111, 146, 1),
-        foregroundColor: Colors.white,
-      ),
-      child: const Text(
-        "Update",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
-  }
-
-  hello() async {
-    var sharedPref = await SharedPreferences.getInstance();
-    var checkNum = sharedPref.getString(MyAppState.PHONENUM);
-    print("SHARED PREFERENCE CALLED AT BUILD CONTEXT OF EDIT PAGE $checkNum");
-  }
-
-  Future<void> _uploadAndSaveImage() async {
-    if (headEditedProfilePic != null) {
-      final downloadUrl =
-          await uploadFile(headEditedProfilePic!, "headProfilePictures");
-      setState(() {
-        editedData['hProfilePic'] = downloadUrl;
-      });
-      print("EDITED PROFILE PIC URL ${editedData['hProfilePic']}");
-    }
-
-    if (wifeEditedProfilePic != null) {
-      final wDownloadUrl =
-          await uploadFile(wifeEditedProfilePic!, "wifeProfilePictures");
-      setState(() {
-        editedData['wProfilePic'] = wDownloadUrl;
-      });
-      print("WIFE EDITED PROFILE PIC URL ${editedData['wProfilePic']}");
-    } else if (wifeProfilePic != null) {
-      final wifeDownloadUrl =
-          await uploadFile(wifeProfilePic!, "wifeProfilePictures");
-      setState(() {
-        editedData['wProfilePic'] = wifeDownloadUrl;
-      });
-    }
-  }
-
-  Future _cropImage() async {
-    print('CROP IMAGE METHOD CALLED');
-    if (headEditedProfilePic != null) {
-      CroppedFile? cropped = await ImageCropper().cropImage(
-          sourcePath: headEditedProfilePic!.path,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio16x9
-          ],
-          uiSettings: [
-            AndroidUiSettings(
-                toolbarTitle: 'Crop',
-                cropGridColor: Colors.black,
-                initAspectRatio: CropAspectRatioPreset.original,
-                lockAspectRatio: false),
-            IOSUiSettings(title: 'Crop')
-          ]);
-
-      if (cropped != null) {
-        setState(() {
-          headEditedProfilePic = File(cropped.path);
-        });
-      }
-    }
-  }
-
-  Future _wEditedCropImage() async {
-    print('CROP IMAGE METHOD CALLED');
-    if (wifeEditedProfilePic != null) {
-      CroppedFile? cropped = await ImageCropper().cropImage(
-          sourcePath: wifeEditedProfilePic!.path,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio16x9
-          ],
-          uiSettings: [
-            AndroidUiSettings(
-                toolbarTitle: 'Crop',
-                cropGridColor: Colors.black,
-                initAspectRatio: CropAspectRatioPreset.original,
-                lockAspectRatio: false),
-            IOSUiSettings(title: 'Crop')
-          ]);
-
-      if (cropped != null) {
-        setState(() {
-          wifeEditedProfilePic = File(cropped.path);
-        });
-      }
-    }
-  }
-
-  Future _wCropImage() async {
-    print('CROP IMAGE METHOD CALLED');
-    if (wifeProfilePic != null) {
-      CroppedFile? cropped = await ImageCropper()
-          .cropImage(sourcePath: wifeProfilePic!.path, aspectRatioPresets: [
-        CropAspectRatioPreset.square,
-        CropAspectRatioPreset.ratio3x2,
-        CropAspectRatioPreset.original,
-        CropAspectRatioPreset.ratio4x3,
-        CropAspectRatioPreset.ratio16x9
-      ], uiSettings: [
-        AndroidUiSettings(
-            toolbarTitle: 'Crop',
-            cropGridColor: Colors.black,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false),
-        IOSUiSettings(title: 'Crop')
-      ]);
-
-      if (cropped != null) {
-        setState(() {
-          wifeProfilePic = File(cropped.path);
-        });
-      }
-    }
   }
 }
 
 
 
 
-But it is not working smoothly like I want if a user search someone by hName and type first letter than that data will filter out and come at the top of screen
+
+
+
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/edit_details_page.dart';
+import 'package:flutter_directory_app/home_page.dart';
+import 'package:flutter_directory_app/login_page.dart';
+import 'package:flutter_directory_app/main.dart';
+import 'package:flutter_directory_app/phone_number_notifier.dart';
+import 'package:flutter_directory_app/register_details_page.dart';
+import 'package:flutter_directory_app/user-details-page.dart';
+import 'package:flutter_scrolling_fab_animated/flutter_scrolling_fab_animated.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ShowData extends ConsumerStatefulWidget {
+  ShowData({
+    super.key,
+  });
+
+  @override
+  ConsumerState<ShowData> createState() => _ShowDataState();
+}
+
+class _ShowDataState extends ConsumerState<ShowData> {
+  List _allResults = [];
+  List resultList = [];
+  var checkNum;
+  check() async {
+    var sharedPref = await SharedPreferences.getInstance();
+    checkNum = sharedPref.getString(MyAppState.PHONENUM);
+    print("VALUE OF CHECK NUM IN CHECK() $checkNum");
+    return checkNum;
+  }
+
+  final TextEditingController _searchController = TextEditingController();
+  ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    getClientStream();
+    _searchController.addListener(onSearchChanged);
+    _controller = ScrollController();
+    super.initState();
+  }
+
+  onSearchChanged() {
+    searchResultList();
+  }
+
+  searchResultList() {
+    var showResults = [];
+
+    if (_searchController.text != "") {
+      for (var clientSnapShot in _allResults) {
+        var hName = clientSnapShot['hName'].toString().toLowerCase();
+        var wName = clientSnapShot['wName'].toString().toLowerCase();
+        var hCurrentAddress =
+            clientSnapShot['hCurrentAddress'].toString().toLowerCase();
+        var wCurrentAddress =
+            clientSnapShot['wCurrentAddress'].toString().toLowerCase();
+        var hOccupation =
+            clientSnapShot['hOccupation'].toString().toLowerCase();
+        var wOccupation =
+            clientSnapShot['wOccupation'].toString().toLowerCase();
+        var hGotra = clientSnapShot['hGotra'].toString().toLowerCase();
+        var wGotra = clientSnapShot['wGotra'].toString().toLowerCase();
+
+        if (hName.contains(_searchController.text.toLowerCase()) ||
+            wName.contains(_searchController.text.toLowerCase()) ||
+            hCurrentAddress.contains(_searchController.text.toLowerCase()) ||
+            wCurrentAddress.contains(_searchController.text.toLowerCase()) ||
+            hOccupation.contains(_searchController.text.toLowerCase()) ||
+            wOccupation.contains(_searchController.text.toLowerCase()) ||
+            hGotra.contains(_searchController.text.toLowerCase()) ||
+            wGotra.contains(_searchController.text.toLowerCase())) {
+          showResults.add(clientSnapShot);
+        }
+      }
+      showResults.sort((a, b) {
+        var aPriority = getPriority(a.data() as Map<String, dynamic>,
+            _searchController.text.toLowerCase());
+        var bPriority = getPriority(b.data() as Map<String, dynamic>,
+            _searchController.text.toLowerCase());
+             print('CHECKING PRIORITIES aPriority: $aPriority, bPriority: $bPriority'); 
+        return bPriority - aPriority;
+      });
+    } else {
+      showResults = List.from(_allResults);
+    }
+    setState(() {
+      resultList = showResults;
+    });
+  }
+
+  int getPriority(Map<String, dynamic> item, String searchText) {
+    print('PRINTING IN GET PRIORITY Data: $item, Search Text: $searchText');
+    var hName = item['hName'].toString().toLowerCase();
+    var wName = item['wName'].toString().toLowerCase();
+    var hCurrentAddress = item['hCurrentAddress'].toString().toLowerCase();
+    var wCurrentAddress = item['wCurrentAddress'].toString().toLowerCase();
+    var hOccupation = item['hOccupation'].toString().toLowerCase();
+    var wOccupation = item['wOccupation'].toString().toLowerCase();
+    var hGotra = item['hGotra'].toString().toLowerCase();
+    var wGotra = item['wGotra'].toString().toLowerCase();
+
+    if (hName.contains(searchText) ||
+        wName.contains(searchText) ||
+        hCurrentAddress.contains(searchText) ||
+        wCurrentAddress.contains(searchText) ||
+        hOccupation.contains(searchText) ||
+        wOccupation.contains(searchText) ||
+        hGotra.contains(searchText) ||
+        wGotra.contains(searchText)) {
+      return 1;
+    } else {
+      return 0; 
+    }
+  }
+
+  getClientStream() async {
+    var data = await FirebaseFirestore.instance
+        .collection("directory-users")
+        .orderBy("hName")
+        .get();
+
+    setState(() {
+      _allResults = data.docs;
+    });
+    searchResultList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    getClientStream();
+    super.didChangeDependencies();
+  }
+
+  Stream<List<Map<String, dynamic>>> fetchData() async* {
+    try {
+      var data = await FirebaseFirestore.instance
+          .collection("directory-users")
+          .orderBy("hName")
+          .get();
+
+      var resultList =
+          data.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      yield resultList;
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    check();
+
+    void logout() async {
+      var sharedPref = await SharedPreferences.getInstance();
+      sharedPref.setBool(MyAppState.KEYLOGIN, false);
+      final notifier = ref.read(phoneNoProvider.notifier);
+      notifier.setPhoneNo(phoneNo: '');
+      sharedPref.setString(MyAppState.PHONENUM, '');
+      await FirebaseAuth.instance.signOut();
+      Navigator.popUntil(context, (route) => route.isFirst);
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => LoginPage()));
+    }
+
+    const border = OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Color.fromRGBO(225, 225, 225, 1),
+      ),
+      borderRadius: BorderRadius.all(Radius.circular(20)),
+    );
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
+          title: const Text(
+            "User Directory",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor:
+              const Color.fromRGBO(5, 111, 146, 1).withOpacity(0.8),
+          actions: [
+            IconButton(
+              onPressed: () {
+                logout();
+              },
+              icon: const Icon(Icons.exit_to_app),
+            )
+          ],
+        ),
+        floatingActionButton: ScrollingFabAnimated(
+          icon: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 20,
+          ),
+          text: const Text(
+            'Add',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 15.0,
+                fontWeight: FontWeight.bold),
+          ),
+          onPress: () async {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => RegistrationPage()));
+          },
+          scrollController: _controller,
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+          width: 10,
+          animateIcon: true,
+          inverted: false,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                    hintText: "Search",
+                    border: border,
+                    enabledBorder: border,
+                    focusedBorder: border,
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection("directory-users")
+                      .orderBy("hName")
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        resultList = snapshot.data!.docs;
+                        return ListView.builder(
+                          controller: _controller,
+                          itemCount: resultList.length,
+                          itemBuilder: (context, index) {
+                            var docId = resultList[index].id;
+                            var userData =
+                                (resultList[index] as QueryDocumentSnapshot)
+                                    .data() as Map<String, dynamic>;
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserDetailsPage(
+                                      userData: (resultList[index]
+                                              as QueryDocumentSnapshot)
+                                          .data() as Map<String, dynamic>,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(1.0),
+                                              child: Column(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 2),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        const Text(
+                                                          "Head of Family",
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () async {
+                                                            var sharedPref =
+                                                                await SharedPreferences
+                                                                    .getInstance();
+                                                            var checkNum =
+                                                                sharedPref.getString(
+                                                                    MyAppState
+                                                                        .PHONENUM);
+                                                            if (checkNum == resultList[index]['addedBy'] ||
+                                                                checkNum ==
+                                                                    resultList[
+                                                                            index]
+                                                                        [
+                                                                        'hContact'] ||
+                                                                checkNum ==
+                                                                    resultList[
+                                                                            index]
+                                                                        [
+                                                                        'wContact']) {
+                                                              // ignore: use_build_context_synchronously
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          EditDetails(
+                                                                    userData: resultList[index]
+                                                                            .data()
+                                                                        as Map<
+                                                                            String,
+                                                                            dynamic>,
+                                                                    userId:
+                                                                        docId,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }
+                                                          },
+                                                          child: FutureBuilder<
+                                                              dynamic>(
+                                                            future: check(),
+                                                            builder: (context,
+                                                                snapshot) {
+                                                              var checkNum =
+                                                                  snapshot.data;
+
+                                                              return (checkNum == resultList[index]['addedBy'] ||
+                                                                      checkNum ==
+                                                                          resultList[index]
+                                                                              [
+                                                                              'hContact'] ||
+                                                                      checkNum ==
+                                                                          resultList[index]
+                                                                              [
+                                                                              'wContact'])
+                                                                  ? const Icon(
+                                                                      Icons
+                                                                          .edit_note,
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              5,
+                                                                              111,
+                                                                              146,
+                                                                              1),
+                                                                      size: 25,
+                                                                    )
+                                                                  : Container(); // Empty container when condition is false
+                                                            },
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  ListTile(
+                                                    leading: CircleAvatar(
+                                                      radius: 30,
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                        resultList[index][
+                                                                "hProfilePic"] ??
+                                                            '',
+                                                      ),
+                                                    ),
+                                                    title: Text(
+                                                      resultList[index]
+                                                              ["hName"] +
+                                                          " " +
+                                                          resultList[index]
+                                                              ["hGotra"] +
+                                                          " ",
+                                                      style: const TextStyle(
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                    ),
+                                                    subtitle: Column(
+                                                      children: [
+                                                        Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons.work,
+                                                              size: 15,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      5,
+                                                                      111,
+                                                                      146,
+                                                                      1),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 5),
+                                                            Text(
+                                                              "${resultList[index]['hOccupation']}",
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons.phone,
+                                                              size: 15,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      5,
+                                                                      111,
+                                                                      146,
+                                                                      1),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 5),
+                                                            Text(
+                                                              "${resultList[index]['hContact']}",
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (resultList[index]
+                                                              ["wName"] !=
+                                                          null ||
+                                                      resultList[index]
+                                                              ["wGotra"] !=
+                                                          null ||
+                                                      resultList[index]
+                                                              ["wOccupation"] !=
+                                                          null ||
+                                                      resultList[index]
+                                                              ["wContact"] !=
+                                                          null) ...[
+                                                    Column(
+                                                      children: [
+                                                        const Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal:
+                                                                      10,
+                                                                  vertical: 2),
+                                                          child: Row(
+                                                            children: [
+                                                              Text(
+                                                                "Spouse",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        ListTile(
+                                                          leading: CircleAvatar(
+                                                            radius: 30,
+                                                            backgroundImage:
+                                                                NetworkImage(
+                                                              resultList[index][
+                                                                      "wProfilePic"] ??
+                                                                  '',
+                                                            ),
+                                                          ),
+                                                          title: Text(
+                                                            resultList[index]
+                                                                    ['wName'] +
+                                                                " " +
+                                                                resultList[
+                                                                        index]
+                                                                    ['wGotra'],
+                                                            style: const TextStyle(
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                          subtitle: Column(
+                                                            children: [
+                                                              if (resultList[
+                                                                          index]
+                                                                      [
+                                                                      "wOccupation"] !=
+                                                                  null)
+                                                                Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .work,
+                                                                      size: 15,
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              5,
+                                                                              111,
+                                                                              146,
+                                                                              1),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            5),
+                                                                    Text(
+                                                                      "${resultList[index]['wOccupation']}",
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              if (resultList[
+                                                                          index]
+                                                                      [
+                                                                      "wContact"] !=
+                                                                  null)
+                                                                Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .phone,
+                                                                      size: 15,
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              5,
+                                                                              111,
+                                                                              146,
+                                                                              1),
+                                                                    ),
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            5),
+                                                                    Text(
+                                                                      "${resultList[index]['wContact']}",
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ] else
+                                                    Container(),
+                                                  const Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 10,
+                                                            vertical: 2),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Text(
+                                                          "more",
+                                                          style: TextStyle(
+                                                              color: Color
+                                                                  .fromARGB(
+                                                                      255,
+                                                                      24,
+                                                                      99,
+                                                                      26),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600),
+                                                        ),
+                                                        Icon(
+                                                          Icons.double_arrow,
+                                                          size: 15,
+                                                          color: Color.fromARGB(
+                                                              255, 24, 99, 26),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  const Divider(
+                                                    thickness: 0.4,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return const Text("No data");
+                      }
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Take this part of code where I am trying to show two listview.builder according to search results if searchController text is empty I am trying to show a list with allResults and if it has some text then I am calling filteredResultList in which i am calling a function resultList = searchResultList(_allResults); 
+but the problem that i am facing right now it that it is always printing "No Data" Text, find out what is the reason and make it correct
+
+Future<void> filteredResultList() async {
+  List<dynamic> updatedResults = await searchResultList(_allResults);
+  setState(() {
+    resultList = updatedResults;
+  });
+}
+
+Future<List<dynamic>> searchResultList(List<dynamic>? allResults) async {
+  List<dynamic> showResults = List.from(allResults ?? []);
+
+  if (_searchController.text != "") {
+    for (var clientSnapShot in showResults) {
+      // Your search logic here...
+    }
+  } else {
+    // No need to create a copy since you are already using showResults
+  }
+
+  return showResults;
+}
+
+
+Future<List<dynamic>> searchResultList(List<dynamic> allResults) async {
+  List<dynamic> showResults = [];
+
+  if (_searchController.text != "") {
+    for (var clientSnapShot in allResults) {
+      // Your filtering logic here
+      // ...
+
+      if (/* your filtering condition */) {
+        showResults.add(clientSnapShot);
+      }
+    }
+  }
+
+  return showResults;
+}
