@@ -84,8 +84,9 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
         var sharedPref = await SharedPreferences.getInstance();
         sharedPref.setBool(MyAppState.KEYLOGIN, true);
         sharedPref.setString(MyAppState.PHONENUM, widget.phoneNo);
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => ShowData()));
+        // Navigator.push(
+        //     context, MaterialPageRoute(builder: (context) => ShowData()));
+        Navigator.pushNamed(context, '/third');
       }
     } on FirebaseAuthException catch (ex) {
       print(ex.code.toString());
@@ -140,7 +141,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen>
       print("VALUE OF SHARED PREFERENCE PHONE NUMBER AT Verify otp IS $test");
     }
 
-    check();
+    // check();
       print("VALUE OF constructor PHONE NUMBER AT Verify otp IS ${widget.phoneNo}");
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 255, 255, 1),

@@ -17,7 +17,7 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage>  {
+class _HomePageState extends ConsumerState<HomePage> {
   int currentPage = 0;
   String countryValue = "";
   String? stateValue = "";
@@ -83,35 +83,28 @@ class _HomePageState extends ConsumerState<HomePage>  {
                     const SizedBox(height: 70),
                   ],
                 ),
-              
-              
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 330,
-                      height: 370,
-                      decoration: const BoxDecoration(
-                        image: DecorationImage(
-                            image: AssetImage("assets/images/Ellipse.png"),
-                            fit: BoxFit.fill),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(40.0),
-                        child: CircleAvatar(
-                            backgroundColor: Colors.transparent,
-                            radius: 50,
-                            child: SizedBox(
-                                child: ClipOval(
-                              child: Image.asset(
-                                "assets/images/logo.jpeg",
-                              ),
-                            ))),
-                      ),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   crossAxisAlignment: CrossAxisAlignment.center,
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     Padding(
+                //       padding: const EdgeInsets.all(10.0),
+                //       child: CircleAvatar(
+                //           backgroundColor: Colors.transparent,
+                //           radius: 130,
+                //           child: SizedBox(
+                //               child: ClipOval(
+                //             child: Image.asset(
+                //               "assets/images/logo.jpeg",
+                //             ),
+                //           ))),
+                //     ),
+                //   ],
+                // ),
+                
+                 Image.asset('assets/images/logo.png',
+                 fit: BoxFit.cover,),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -124,33 +117,40 @@ class _HomePageState extends ConsumerState<HomePage>  {
                                   color: Theme.of(context).colorScheme.primary,
                                   width: 1),
                               shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(5)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(5)),
                               ),
                               backgroundColor: Colors.transparent,
-                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.primary,
                               elevation: 0),
                           onPressed: () async {
-                            var sharedPref = await SharedPreferences.getInstance();
-                            var isLoggedIn =
-                                sharedPref.getBool(MyAppState.KEYLOGIN);
-                            if (isLoggedIn != null) {
-                              if (isLoggedIn == true) {
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => ShowData()));
-                              } else {
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => LoginPage()));
-                              }
-                            } else {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LoginPage()));
-                            }
+                            // var sharedPref = await SharedPreferences.getInstance();
+                            // var isLoggedIn =
+                            //     sharedPref.getBool(MyAppState.KEYLOGIN);
+                            // if (isLoggedIn != null) {
+                            //   if (isLoggedIn == true) {
+                            //     Navigator.pushReplacement(
+                            //         context,
+                            //         MaterialPageRoute(
+                            //             builder: (context) => ShowData()));
+                            //   } else {
+                            //     Navigator.pushReplacement(
+                            //         context,
+                            //         MaterialPageRoute(
+                            //             builder: (context) => LoginPage()));
+                            //   }
+                            // } else {
+                            //   Navigator.pushReplacement(
+                            //       context,
+                            //       MaterialPageRoute(
+                            //           builder: (context) => LoginPage()));
+                            // }
+
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const ShowData()));
                           },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -161,7 +161,8 @@ class _HomePageState extends ConsumerState<HomePage>  {
                                   textStyle: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -170,8 +171,7 @@ class _HomePageState extends ConsumerState<HomePage>  {
                         ),
                       ),
                     ),
-                 
-                 ],
+                  ],
                 ),
               ],
             ),

@@ -250,51 +250,61 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
               "$person Name",
               "hName",
               userData["hName"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person Gotra",
               "hGotra",
               userData["hGotra"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person Occupation",
               "hOccupation",
               userData["hOccupation"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person Pin Code",
               "hPinCode",
               userData["hPinCode"],
+               TextInputType.number
             ),
             _buildTextField(
               "$person State",
               "hState",
               userData["hState"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person District",
               "hDistrict",
               userData["hDistrict"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person City",
               "hCity",
               userData["hCity"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person Current Address",
               "hCurrentAddress",
               userData["hCurrentAddress"],
+               TextInputType.text
             ),
             _buildTextField(
               "$person Contact Number",
               "hContact",
               userData["hContact"],
+               TextInputType.phone
             ),
             _buildTextField(
               "$person Birth Place",
               "hBirthPlace",
               userData["hBirthPlace"],
+               TextInputType.text
             ),
           ],
         ),
@@ -372,41 +382,49 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                     "$person Name",
                     "wName",
                     userData["wName"],
+                     TextInputType.text
                   ),
                   _buildTextField(
                     "$person Gotra",
                     "wGotra",
                     userData["wGotra"],
+                     TextInputType.text
                   ),
                   _buildTextField(
                     "$person Occupation",
                     "wOccupation",
                     userData["wOccupation"],
+                     TextInputType.text
                   ),
                   _buildTextField(
                     "$person Pin Code",
                     "wPinCode",
                     userData["wPinCode"],
+                     TextInputType.number
                   ),
                   _buildTextField(
                     "$person State",
                     "wState",
                     userData["wState"],
+                     TextInputType.text
                   ),
                   _buildTextField(
                     "$person District",
                     "wDistrict",
                     userData["wDistrict"],
+                     TextInputType.text
                   ),
                   _buildTextField(
                     "$person City",
                     "wCity",
                     userData["wCity"],
+                     TextInputType.text
                   ),
                   _buildTextField(
                     "$person Current Address",
                     "wCurrentAddress",
                     userData["wCurrentAddress"],
+                     TextInputType.text
                   ),
                  
                   _buildContactTextField( "$person Contact Number",
@@ -416,6 +434,7 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                     "$person Birth Place",
                     "wBirthPlace",
                     userData["wBirthPlace"],
+                     TextInputType.text
                   ),
                 ],
               ),
@@ -487,25 +506,25 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
                         )),
                   const SizedBox(height: 5),
                   _buildWifeEmptyTextField('Spouse Name', spouseNameController,
-                      'wName', validateWifeName),
+                      'wName', validateWifeName,  TextInputType.text),
                   _buildWifeEmptyTextField('Spouse Gotra',
-                      spouseGotraController, 'wGotra', validateWifeGotra),
+                      spouseGotraController, 'wGotra', validateWifeGotra,  TextInputType.text),
                   _buildWifeEmptyTextField('Spouse Occupation',
-                      spouseOccupationController, 'wOccupation', false),
+                      spouseOccupationController, 'wOccupation', false,  TextInputType.text),
                   _buildWifeEmptyTextField('Spouse Pin Code',
-                      spousePinCodeController, 'wPinCode', false),
+                      spousePinCodeController, 'wPinCode', false, TextInputType.number),
                   _buildWifeEmptyTextField(
-                      'Spouse State', spouseStateController, 'wState', false),
+                      'Spouse State', spouseStateController, 'wState', false, TextInputType.text),
                   _buildWifeEmptyTextField('Spouse District',
-                      spouseDistrictController, 'wDistrict', false),
+                      spouseDistrictController, 'wDistrict', false,  TextInputType.text),
                   _buildWifeEmptyTextField(
-                      'Spouse City', spouseCityController, 'wCity', false),
+                      'Spouse City', spouseCityController, 'wCity', false,  TextInputType.text),
                   _buildContactTextField('Spouse Contact',
                        'wContact', spouseContactController),
                   _buildWifeEmptyTextField('Spouse Birthplace',
-                      spouseBirthPlaceController, 'wBirthPlace', false),
+                      spouseBirthPlaceController, 'wBirthPlace', false,  TextInputType.text),
                   _buildWifeEmptyTextField('Spouse CurrentAddress',
-                      spouseCurrentAddressController, 'wCurrentAddress', false),
+                      spouseCurrentAddressController, 'wCurrentAddress', false,  TextInputType.text),
                 ],
               ),
             ),
@@ -520,6 +539,8 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
     return Column(
       children: [
         TextFormField(
+          textCapitalization: TextCapitalization.words,
+          keyboardType: TextInputType.phone,
           controller: controller,
           // initialValue: initialValue ?? '',
           style: const TextStyle(
@@ -575,10 +596,12 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
 
 
   _buildWifeEmptyTextField(String label, TextEditingController controller,
-      String field, bool validate) {
+      String field, bool validate, TextInputType keyboardType,) {
     return Column(
       children: [
         TextField(
+           textCapitalization: TextCapitalization.words,
+          keyboardType: keyboardType,
           cursorColor: Colors.black,
           controller: controller,
           decoration: InputDecoration(
@@ -619,10 +642,12 @@ class _EditDetailsState extends ConsumerState<EditDetails> {
     );
   }
 
-  Widget _buildTextField(String label, String field, String? initialValue) {
+  Widget _buildTextField(String label, String field, String? initialValue, TextInputType keyboardType,) {
     return Column(
       children: [
         TextFormField(
+          textCapitalization: TextCapitalization.words,
+          keyboardType: keyboardType,
           initialValue: initialValue ?? '',
           style: const TextStyle(
             fontSize: 16,

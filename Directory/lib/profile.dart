@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_directory_app/data.dart';
+import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/login_page.dart';
 import 'package:flutter_directory_app/main.dart';
 import 'package:flutter_directory_app/phone_number_notifier.dart';
@@ -40,7 +42,7 @@ class _MyProfileState extends ConsumerState<MyProfile> {
     await FirebaseAuth.instance.signOut();
     Navigator.popUntil(context, (route) => route.isFirst);
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => LoginPage()));
+        context, MaterialPageRoute(builder: (context) => HomePage()));
   }
 
   Widget _profileView() {

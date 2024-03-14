@@ -36,6 +36,8 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   bool validateHeadContact = false;
   bool validatePin = false;
   bool validateCity = false;
+  bool validateHProfile = false;
+  bool validateWProfile = false;
 
   final TextEditingController headNameController = TextEditingController();
 
@@ -129,25 +131,28 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         },
       ),
       body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal:2, vertical: 5),
           child: SingleChildScrollView(
             child: Column(
               children: [
                 Column(children: [
                   const Row(
                     children: [
-                      Text(
-                        'Head of the family/Husband',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal:8.0, vertical: 0),
+                        child: Text(
+                          'Head of the family/Husband',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Card(
-                    elevation: 0.7,
+                    elevation: 0,
                     child: Column(
                       children: [
                         const SizedBox(height: 10),
@@ -173,25 +178,30 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                                     });
                                     print("Image selected");
                                   } else {
-                                    print("No image selected");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Please select an image'),
+                                      ),
+                                    );
                                   }
                                 },
                                 child: Column(
                                   children: [
-                                   if( headProfilePic == null )...[
-                                        const SizedBox(
-                                      height: 40,
-                                    ),
-                                    const Expanded(
-                                      child: Align(
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.person_add,
-                                          size: 30,
-                                          color: Colors.black,
+                                    if (headProfilePic == null) ...[
+                                      const SizedBox(
+                                        height: 40,
+                                      ),
+                                      const Expanded(
+                                        child: Align(
+                                          alignment: Alignment.center,
+                                          child: Icon(
+                                            Icons.person_add,
+                                            size: 30,
+                                            color: Colors.black,
+                                          ),
                                         ),
                                       ),
-                                    ),
                                     ],
                                     Expanded(
                                       child: CircleAvatar(
@@ -239,18 +249,21 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                     const SizedBox(height: 10),
                     const Row(
                       children: [
-                        Text(
-                          'Spouse',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal:8.0, vertical: 0),
+                          child: Text(
+                            'Spouse',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 10),
                     Card(
-                      elevation: 0.7,
+                      elevation: 0,
                       child: Column(
                         children: [
                           const SizedBox(height: 10),
@@ -279,21 +292,21 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                                   },
                                   child: Column(
                                     children: [
-                                        if( wifeProfilePic == null )...[
+                                      if (wifeProfilePic == null) ...[
                                         const SizedBox(
-                                      height: 40,
-                                    ),
-                                    const Expanded(
-                                      child: Align(
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.person_add,
-                                          size: 30,
-                                          color: Colors.black,
+                                          height: 40,
                                         ),
-                                      ),
-                                    ),
-                                    ],
+                                        const Expanded(
+                                          child: Align(
+                                            alignment: Alignment.center,
+                                            child: Icon(
+                                              Icons.person_add,
+                                              size: 30,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                       Expanded(
                                         child: CircleAvatar(
                                           radius: 58.0,
@@ -481,35 +494,39 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
               '$title Name',
               title == "Householder" ? headNameController : wifeNameController,
               title == "Householder" ? validateHeadName : false,
-              false),
+              false,
+              TextInputType.text),
           _buildTextField(
               '$title Gotra',
               title == "Householder"
                   ? headGotraController
                   : wifeGotraController,
               title == "Householder" ? validateHeadGotra : false,
-              false),
+              false,TextInputType.text),
           _buildTextField(
               '$title Occupation',
               title == "Householder"
                   ? headOccupationController
                   : wifeOccupationController,
               false,
-              false),
+              false,
+              TextInputType.text),
           _buildTextField(
               '$title Contact',
               title == "Householder"
                   ? headContactController
                   : wifeContactController,
               title == "Householder" ? validateHeadContact : false,
-              false),
+              false,
+              TextInputType.phone),
           _buildTextField(
               '$title Birthplace',
               title == "Householder"
                   ? headBirthplaceController
                   : wifeBirthplaceController,
               false,
-              false),
+              false,
+              TextInputType.text),
           _buildZipCodeTextField(
             '$title Zip-code',
             title == 'Householder'
@@ -521,28 +538,32 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
               '$title City',
               title == 'Householder' ? headCityController : wifeCityController,
               title == "Householder" ? validateCity : false,
-              false),
+              false,
+              TextInputType.text),
           _buildTextField(
               '$title District',
               title == 'Householder'
                   ? headDistrictController
                   : wifeDistrictController,
               false,
-              false),
+              false,
+              TextInputType.text),
           _buildTextField(
               '$title State',
               title == 'Householder'
                   ? headStateController
                   : wifeStateController,
               false,
-              false),
+              false,
+              TextInputType.text),
           _buildTextField(
               '$title CurrentAddress',
               title == "Householder"
                   ? headCurrentAddressController
                   : wifeCurrentAddressController,
               false,
-              false),
+              false,
+              TextInputType.text),
         ],
       ),
     );
@@ -556,6 +577,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     return Column(
       children: [
         TextField(
+          keyboardType: TextInputType.number,
           cursorColor: Colors.black,
           controller: controller,
           decoration: InputDecoration(
@@ -596,10 +618,13 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     TextEditingController controller,
     bool validate,
     bool showSuffixIcon,
+    TextInputType keyboardType,
   ) {
     return Column(
       children: [
         TextField(
+          textCapitalization: TextCapitalization.words,
+          keyboardType: keyboardType,
           cursorColor: Colors.black,
           controller: controller,
           decoration: InputDecoration(
@@ -717,6 +742,14 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         print("User Created!");
         print("ADDED BY : ${showNum}");
         submitForm();
+        Navigator.pop(context);
+      }
+      else{
+         ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please choose an image'),
+            ),
+          );
       }
     } catch (error) {
       print("Error saving user: $error");
@@ -733,7 +766,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         headProfilePic = null;
         wifeProfilePic = null;
       });
-      Navigator.pop(context); // Close the loading dialog
+      // Navigator.pop(context); // Close the loading dialog
     }
   }
 
@@ -844,12 +877,13 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
     validateHeadContact = headContactController.text.isEmpty;
     // validatePin = headCityPinController.text.isEmpty;
     validateCity = headCityController.text.isEmpty;
+    headProfilePic == null;
 
     return !validateHeadName &&
         !validateHeadGotra &&
         !validateHeadContact &&
         !validateCity;
-        // && !validatePin;
+    // && !validatePin;
   }
 
   Future<void> getDataFromPinCode(String pinCode, String title) async {
@@ -870,7 +904,6 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
 
           final district = obj['District'];
           final state = obj['State'];
-          final city = obj['Name'];
 
           setState(() {
             pinCodeDetails =
@@ -880,11 +913,9 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
             if (title == "Householder Zip-code") {
               headDistrictController.text = district;
               headStateController.text = state;
-              headCityController.text = city;
             } else {
               wifeDistrictController.text = district;
               wifeStateController.text = state;
-              wifeCityController.text = city;
             }
           });
         }

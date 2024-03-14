@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_directory_app/firebase_options.dart';
 import 'package:flutter_directory_app/home_page.dart';
 import 'package:flutter_directory_app/login_page.dart';
+import 'package:flutter_directory_app/register_details_page.dart';
 import 'package:flutter_directory_app/show_data.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -37,6 +38,7 @@ class MyAppState extends ConsumerState<MyApp> {
         '/first': (context) =>  HomePage(),
         '/second': (context) => const LoginPage(),
         '/third': (context) =>  const ShowData(),
+        '/fourth':(context) => RegistrationPage(),
       },
       theme: ThemeData(
         fontFamily: GoogleFonts.openSans().fontFamily,
